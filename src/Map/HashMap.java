@@ -37,7 +37,10 @@ package Map;
 //     */
 //    static final int UNTREEIFY_THRESHOLD = 6;
 //
-
+//    /**
+//     *
+//     */
+//    static final int MIN_TREEIFY_CAPACITY = 64;
 //
 //    /**
 //     * 存储元素的数组,2的n次幂
