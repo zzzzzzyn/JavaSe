@@ -7,6 +7,7 @@ import java.util.function.Consumer;
  * 双端链表
  * 遍历非常耗时
  * 也可以当做队列,堆栈来使用
+ * @author xyn
  */
 public class LinkedList<E>
         extends AbstractSequentialList<E>
@@ -31,6 +32,7 @@ public class LinkedList<E>
 
     /**
      * 将c中所有元素加入到LinkedList中
+     * @param c Collection
      */
     public LinkedList(Collection<? extends E> c) {
         this();
@@ -152,6 +154,7 @@ public class LinkedList<E>
 
     /**
      * 返回列表中第一个元素
+     * @return E
      */
     public E getFirst() {
         final Node<E> f = first;
@@ -162,6 +165,7 @@ public class LinkedList<E>
 
     /**
      * 返回列表中最后一个元素
+     * @return E
      */
     public E getLast() {
         final Node<E> l = last;
@@ -172,6 +176,7 @@ public class LinkedList<E>
 
     /**
      * 移除第一个元素
+     * @return E
      */
     public E removeFirst() {
         final Node<E> f = first;
@@ -182,6 +187,7 @@ public class LinkedList<E>
 
     /**
      * 移除最后一个元素
+     * @return E
      */
     public E removeLast() {
         final Node<E> l = last;
@@ -192,6 +198,7 @@ public class LinkedList<E>
 
     /**
      * 将指定元素添加为头元素
+     * @param e
      */
     public void addFirst(E e) {
         linkFirst(e);
@@ -199,6 +206,7 @@ public class LinkedList<E>
 
     /**
      * 指定元素添加为尾元素
+     * @return E
      */
     public void addLast(E e) {
         linkLast(e);
@@ -206,6 +214,8 @@ public class LinkedList<E>
 
     /**
      * 包含方法,依赖indexOf()
+     * @param o
+     * @return boolean
      */
     public boolean contains(Object o) {
         return indexOf(o) != -1;
@@ -217,6 +227,8 @@ public class LinkedList<E>
 
     /**
      * 添加,(添加为尾元素)
+     * @param e
+     * @return boolean
      */
     public boolean add(E e) {
         linkLast(e);
@@ -225,6 +237,8 @@ public class LinkedList<E>
 
     /**
      * 移除元素o
+     * @param o
+     * @return boolean
      */
     public boolean remove(Object o) {
         if (o == null) {
@@ -247,13 +261,17 @@ public class LinkedList<E>
 
     /**
      * 将集合c所有元素追加到此列表
+     * @param c
+     * @return boolean
      */
     public boolean addAll(Collection<? extends E> c) {
         return addAll(size, c);
     }
 
     /**
-     *
+     * @param index
+     * @param c
+     * @return boolean
      */
     public boolean addAll(int index, Collection<? extends E> c) {
         checkPositionIndex(index);
@@ -320,6 +338,8 @@ public class LinkedList<E>
 
     /**
      * 返回列表中指定位置的元素
+     * @param index
+     * @return E
      */
     public E get(int index) {
         // 索引合法检查
@@ -433,6 +453,8 @@ public class LinkedList<E>
 
     /**
      * 获取对象o的索引(首次出现,所以正向遍历)
+     * @param o
+     * @return int
      */
     public int indexOf(Object o) {
         /**
@@ -459,6 +481,8 @@ public class LinkedList<E>
 
     /**
      * 获取对象o的索引(最后一次出现,所以反向遍历)
+     * @param o
+     * @return int
      */
     public int lastIndexOf(Object o) {
         int index = size;
@@ -482,6 +506,7 @@ public class LinkedList<E>
 
     /**
      * 检索但不删除头元素
+     * @return E
      */
     public E peek() {
         final Node<E> f = first;
@@ -490,6 +515,7 @@ public class LinkedList<E>
 
     /**
      * 检索但不删除头元素
+     * @return E
      */
     public E element() {
         return getFirst();
@@ -497,6 +523,7 @@ public class LinkedList<E>
 
     /**
      * 检索并删除头元素
+     * @return E
      */
     public E poll() {
         final Node<E> f = first;
@@ -505,6 +532,7 @@ public class LinkedList<E>
 
     /**
      * 移除头元素
+     * @return E
      */
     public E remove() {
         return removeFirst();
@@ -512,6 +540,8 @@ public class LinkedList<E>
 
     /**
      * 添加e为尾元素
+     * @param e
+     * @return boolean
      */
     public boolean offer(E e) {
         return add(e);
@@ -521,6 +551,8 @@ public class LinkedList<E>
 
     /**
      * 添加e为首元素
+     * @param e
+     * @return boolean
      */
     public boolean offerFirst(E e) {
         addFirst(e);
@@ -537,6 +569,7 @@ public class LinkedList<E>
 
     /**
      * 检索但不删除头元素
+     * @return boolean
      */
     public E peekFirst() {
         final Node<E> f = first;
@@ -545,6 +578,7 @@ public class LinkedList<E>
 
     /**
      * 检索但不删除尾元素
+     * @return E
      */
     public E peekLast() {
         final Node<E> l = last;
@@ -553,6 +587,7 @@ public class LinkedList<E>
 
     /**
      * 检索并删除头元素
+     * @return E
      */
     public E pollFirst() {
         final Node<E> f = first;
@@ -561,6 +596,7 @@ public class LinkedList<E>
 
     /**
      * 检索并删除尾元素
+     * @return E
      */
     public E pollLast() {
         final Node<E> l = last;
@@ -569,6 +605,7 @@ public class LinkedList<E>
 
     /**
      * 将链表当做堆栈压入元素e
+     * @param e
      */
     public void push(E e) {
         addFirst(e);
@@ -576,6 +613,7 @@ public class LinkedList<E>
 
     /**
      * 将链表当做堆栈弹出首元素
+     * @return E
      */
     public E pop() {
         return removeFirst();
@@ -583,6 +621,8 @@ public class LinkedList<E>
 
     /**
      * 删除o第一次出现的元素
+     * @param o
+     * @return boolean
      */
     public boolean removeFirstOccurrence(Object o) {
         return remove(o);
@@ -590,6 +630,8 @@ public class LinkedList<E>
 
     /**
      * 删除o最后一次出现的元素
+     * @param o
+     * @return boolean
      */
     public boolean removeLastOccurrence(Object o) {
         if (o == null) {
@@ -739,11 +781,11 @@ public class LinkedList<E>
      * 真正存放数据的节点
      */
     private static class Node<E> {
-        // 内容
+        /** 内容 */
         E item;
-        // 后继节点
+        /** 后继节点 */
         Node<E> next;
-        // 前驱节点
+        /** 前驱节点 */
         Node<E> prev;
 
         Node(Node<E> prev, E element, Node<E> next) {
@@ -787,6 +829,7 @@ public class LinkedList<E>
 
     /**
      * 克隆
+     * @return Object
      */
     public Object clone() {
         LinkedList<E> clone = superClone();
@@ -806,6 +849,7 @@ public class LinkedList<E>
 
     /**
      * 链表转换为数组
+     * @return Object[]
      */
     public Object[] toArray() {
         Object[] result = new Object[size];
@@ -817,6 +861,8 @@ public class LinkedList<E>
 
     /**
      * 链表转换为数组a
+     * @param a
+     * @return T[]
      */
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {

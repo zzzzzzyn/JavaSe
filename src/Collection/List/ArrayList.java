@@ -2,36 +2,43 @@ package Collection.List;
 
 import java.util.*;
 
+/**
+ * @author xyn
+ */
 public class ArrayList<E> extends AbstractList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable
 {
-    // 序列化ID
+    /** 序列化ID */
     private static final long serialVersionUID = 8683452581122892189L;
 
-    // 默认容量
+    /** 默认容量 */
     private static final int DEFAULT_CAPACITY = 10;
 
-    // 空数据元素
+    /** 空数据元素 */
     private static final Object[] EMPTY_ELEMENTDATA = {};
 
-    // 默认空数据元素
+    /** 默认空数据元素 */
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
-    // 存储数据的数组引用
+    /** 存储数据的数组引用 */
     transient Object[] elementData;
 
-    // 集合的长度
+    /** 集合的长度 */
     private int size;
 
-    // 数组最大长度
+    /** 数组最大长度 */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
+    /** 构造方法 */
     public ArrayList() {
         this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
     }
 
-    // 初始化一个长度为initialCapacity的数据元素
-    // 推荐在创建ArrayList时给出容量以尽量避免扩容来提高效率
+    /**
+     * 初始化一个长度为initialCapacity的数据元素
+     * 推荐在创建ArrayList时给出容量以尽量避免扩容来提高效率
+     * @param initialCapacity  初始容量
+     */
     public ArrayList(int initialCapacity) {
         if (initialCapacity > 0) {
             // 数据元素引用赋值
@@ -45,7 +52,10 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
-    // 构造时传入集合c
+    /**
+     * 构造时传入集合c
+     * @param c
+     */
     public ArrayList(Collection<? extends E> c) {
         elementData = c.toArray();
         if ((size = elementData.length) != 0) {
@@ -58,25 +68,40 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
-    // 集合的大小(也就是当前数组的长度)
+    /**
+     * 集合的大小(也就是当前数组的长度)
+     * @return int
+     */
     public int size() {
         return size;
     }
 
-    // 是否为空(长度是否为0)
+    /**
+     * 是否为空(长度是否为0)
+     * @return boolean
+     */
     public boolean isEmpty() {
         return size == 0;
     }
 
-    // 是否包含对象o
+    /**
+     * 是否包含对象o
+     * @param o object
+     * @return boolean
+     */
     public boolean contains(Object o) {
         // 内部调用index获取o的索引并与0做比较
         return indexOf(o) >= 0;
     }
 
-    // 对象o首次出现的位置
+    /**
+     * 对象o首次出现的位置
+     * @param o object
+     * @return int
+     */
     public int indexOf(Object o) {
-        /* ︿(￣︶￣)︿
+        /**
+         * ︿(￣︶￣)︿
          * 判空(列出了对象o所有的可能性-》null或非null)
          * 因为首次出现位置，所以正向遍历
          */
@@ -92,7 +117,11 @@ public class ArrayList<E> extends AbstractList<E>
         return -1;
     }
 
-    // 对象o最后一次出现的位置(同首次相对应)
+    /**
+     * 对象o最后一次出现的位置(同首次相对应)
+     * @param o object
+     * @return int
+     */
     public int lastIndexOf(Object o) {
         if (o == null) {
             for (int i = size-1; i >= 0; i--)
@@ -106,7 +135,10 @@ public class ArrayList<E> extends AbstractList<E>
         return -1;
     }
 
-    // 克隆操作
+    /**
+     * 克隆操作
+     * @return Object
+     */
     public Object clone() {
         try {
             ArrayList<?> v = (ArrayList<?>) super.clone();
@@ -118,13 +150,21 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
-    // 集合转换为数组
+    /**
+     * 集合转换为数组
+     * @return Object[]
+     */
     public Object[] toArray() {
         // 调用Arrays.copyOf方法
         return Arrays.copyOf(elementData, size);
     }
 
-    // 传入泛型数组接受集合元素
+    //
+    /**
+     * 传入泛型数组接受集合元素
+     * @param a T[]
+     * @return T
+     */
     public <T> T[] toArray(T[] a) {
         // 长度判断
         if (a.length < size)
@@ -138,14 +178,23 @@ public class ArrayList<E> extends AbstractList<E>
         return a;
     }
 
-    // 通过index获取元素
+    /**
+     * 通过index获取元素
+     * @param index
+     * @return E
+     */
     public E get(int index) {
         // 范围检查(查看index是否大于0)
         rangeCheck(index);
         return elementData(index);
     }
 
-    // 覆盖index位置元素为新element,返回旧值
+    /**
+     * 覆盖index位置元素为新element,返回旧值
+     * @param index
+     * @param element
+     * @return E
+     */
     public E set(int index, E element) {
         // 范围检查
         rangeCheck(index);
@@ -154,6 +203,11 @@ public class ArrayList<E> extends AbstractList<E>
         return oldValue;
     }
 
+    /**
+     * 元素添加
+     * @param e
+     * @return boolean
+     */
     public boolean add(E e) {
         // 内部容量担保
         ensureCapacityInternal(size + 1);
@@ -161,22 +215,35 @@ public class ArrayList<E> extends AbstractList<E>
         return true;
     }
 
-    // 传入最小容量minCapacity
+    /**
+     * 传入最小容量minCapacity
+     * @param minCapacity
+     */
     private void ensureCapacityInternal(int minCapacity) {
         ensureExplicitCapacity(calculateCapacity(elementData, minCapacity));
     }
 
-    // 计算容量
+    /**
+     * 计算容量
+     * @param elementData
+     * @param minCapacity
+     * @return int
+     */
     private static int calculateCapacity(Object[] elementData, int minCapacity) {
         if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
-            // 无参构造首次添加元素会进入此判断
-            // DEFAULT_CAPACITY:10===>默认容量,
+            /**
+             * 无参构造首次添加元素会进入此判断
+             * DEFAULT_CAPACITY:10===>默认容量,
+             */
             return Math.max(DEFAULT_CAPACITY, minCapacity);
         }
         return minCapacity;
     }
 
-    // 明确内部容量
+    /**
+     * 明确内部容量
+     * @param minCapacity
+     */
     private void ensureExplicitCapacity(int minCapacity) {
         modCount++;
         // 若目前最小所需容量>elementdata的长度则扩容
@@ -184,7 +251,10 @@ public class ArrayList<E> extends AbstractList<E>
             grow(minCapacity);
     }
 
-    // 扩容
+    /**
+     * 扩容
+     * @param minCapacity
+     */
     private void grow(int minCapacity) {
         // 旧容量
         int oldCapacity = elementData.length;
@@ -208,6 +278,10 @@ public class ArrayList<E> extends AbstractList<E>
                 MAX_ARRAY_SIZE;
     }
 
+    /**
+     * @param index
+     * @param element
+     */
     public void add(int index, E element) {
         // 添加的范围检查
         rangeCheckForAdd(index);
@@ -220,7 +294,12 @@ public class ArrayList<E> extends AbstractList<E>
         size++;
     }
 
-    // 移除index位置的元素
+    //
+    /**
+     * 移除index位置的元素
+     * @param index
+     * @return E
+     */
     public E remove(int index) {
         rangeCheck(index);
 
@@ -239,7 +318,11 @@ public class ArrayList<E> extends AbstractList<E>
         return oldValue;
     }
 
-    // 移除对象o
+    /**
+     * 移除对象o
+     * @param o Object
+     * @return boolean
+     */
     public boolean remove(Object o) {
         if (o == null) {
             for (int index = 0; index < size; index++)
@@ -257,7 +340,10 @@ public class ArrayList<E> extends AbstractList<E>
         return false;
     }
 
-    // 专用删除方法(大致等同remove(int index))
+    /**
+     * 专用删除方法(大致等同remove(int index))
+     * @param index
+     */
     private void fastRemove(int index) {
         modCount++;
         int numMoved = size - index - 1;
@@ -277,7 +363,11 @@ public class ArrayList<E> extends AbstractList<E>
         size = 0;
     }
 
-    // 添加元素c(集合)到ArrayList集合中
+    /**
+     * 添加元素c(集合)到ArrayList集合中
+     * @param c Collcetion
+     * @return boolean
+     */
     public boolean addAll(Collection<? extends E> c) {
         Object[] a = c.toArray();
         int numNew = a.length;
@@ -288,8 +378,13 @@ public class ArrayList<E> extends AbstractList<E>
         return numNew != 0;
     }
 
-    // 添加元素c(集合)到ArrayList集合中的指定位置
-    // 涉及数组扩容检查和数组拷贝,效率较低
+    /**
+     * 添加元素c(集合)到ArrayList集合中的指定位置
+     * 涉及数组扩容检查和数组拷贝,效率较低
+     * @param index
+     * @param c Collection
+     * @return boolean
+     */
     public boolean addAll(int index, Collection<? extends E> c) {
         rangeCheckForAdd(index);
 
@@ -307,22 +402,35 @@ public class ArrayList<E> extends AbstractList<E>
         return numNew != 0;
     }
 
-    // 移除ArrayList集合中c集合包含的元素
+    /**
+     * 移除ArrayList集合中c集合包含的元素
+     * @param c Collection
+     * @return boolean
+     */
     public boolean removeAll(Collection<?> c) {
         // 非空校验
         Objects.requireNonNull(c);
         return batchRemove(c, false);
     }
 
-    // 移除ArrayList集合中c集合未包含的元素(removeAll的兄弟方法)
-    // 本人眼拙,实在没看出来此方法有啥意义,若只是排除,为什么不用ArrayList的构造?
+    /**
+     * 移除ArrayList集合中c集合未包含的元素(removeAll的兄弟方法)
+     * 本人眼拙,实在没看出来此方法有啥意义,若只是排除,为什么不用ArrayList的构造?
+     * @param c Collection
+     * @return boolean
+     */
     public boolean retainAll(Collection<?> c) {
         // 非空校验
         Objects.requireNonNull(c);
         return batchRemove(c, true);
     }
 
-    // 批量删除
+    /**
+     * 批量删除
+     * @param c Collection
+     * @param complement
+     * @return boolean
+     */
     private boolean batchRemove(Collection<?> c, boolean complement) {
         final Object[] elementData = this.elementData;
         //
