@@ -1,4 +1,4 @@
-package Collection.List;
+package collection.list;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -32,7 +32,7 @@ public class LinkedList<E>
 
     /**
      * 将c中所有元素加入到LinkedList中
-     * @param c Collection
+     * @param c collection
      */
     public LinkedList(Collection<? extends E> c) {
         this();
@@ -655,7 +655,7 @@ public class LinkedList<E>
     /**
      * Returns a list-iterator of the elements in this list (in proper
      * sequence), starting at the specified position in the list.
-     * Obeys the general contract of {@code List.listIterator(int)}.<p>
+     * Obeys the general contract of {@code list.listIterator(int)}.<p>
      *
      * The list-iterator is <i>fail-fast</i>: if the list is structurally
      * modified at any time after the Iterator is created, in any way except

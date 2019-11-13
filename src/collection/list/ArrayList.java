@@ -1,4 +1,4 @@
-package Collection.List;
+package collection.list;
 
 import java.util.*;
 
@@ -382,7 +382,7 @@ public class ArrayList<E> extends AbstractList<E>
      * 添加元素c(集合)到ArrayList集合中的指定位置
      * 涉及数组扩容检查和数组拷贝,效率较低
      * @param index
-     * @param c Collection
+     * @param c collection
      * @return boolean
      */
     public boolean addAll(int index, Collection<? extends E> c) {
@@ -404,7 +404,7 @@ public class ArrayList<E> extends AbstractList<E>
 
     /**
      * 移除ArrayList集合中c集合包含的元素
-     * @param c Collection
+     * @param c collection
      * @return boolean
      */
     public boolean removeAll(Collection<?> c) {
@@ -416,7 +416,7 @@ public class ArrayList<E> extends AbstractList<E>
     /**
      * 移除ArrayList集合中c集合未包含的元素(removeAll的兄弟方法)
      * 本人眼拙,实在没看出来此方法有啥意义,若只是排除,为什么不用ArrayList的构造?
-     * @param c Collection
+     * @param c collection
      * @return boolean
      */
     public boolean retainAll(Collection<?> c) {
@@ -427,7 +427,7 @@ public class ArrayList<E> extends AbstractList<E>
 
     /**
      * 批量删除
-     * @param c Collection
+     * @param c collection
      * @param complement
      * @return boolean
      */

@@ -1,11 +1,11 @@
-package Map;
+package map;
 
 /**
  * 因为TreeNode移植不过来,所以注掉了报错代码
  * 可对比源码包查看
  */
 //public class HashMap<K, V> extends AbstractMap<K, V>
-//        implements Map<K, V>, Cloneable, Serializable {
+//        implements map<K, V>, Cloneable, Serializable {
 //
 //    /**
 //     * 序列化ID
@@ -56,7 +56,7 @@ package Map;
 //     * Holds cached entrySet(). Note that AbstractMap fields are used
 //     * for keySet() and values().
 //     */
-//    transient Set<Map.Entry<K, V>> entrySet;
+//    transient Set<map.Entry<K, V>> entrySet;
 //
 //    /**
 //     * 对HashMap修改的次数
@@ -77,7 +77,7 @@ package Map;
 //    /**
 //     * Node实现了Entry接口,存放键值对(Map真正存放数据的内部类)
 //     */
-//    static class Node<K, V> implements Map.Entry<K, V> {
+//    static class Node<K, V> implements map.Entry<K, V> {
 //        final int hash;
 //        final K key;
 //        V value;
@@ -117,8 +117,8 @@ package Map;
 //        public final boolean equals(Object o) {
 //            if (o == this)
 //                return true;
-//            if (o instanceof Map.Entry) {
-//                Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
+//            if (o instanceof map.Entry) {
+//                map.Entry<?, ?> e = (map.Entry<?, ?>) o;
 //                if (Objects.equals(key, e.getKey()) &&
 //                        Objects.equals(value, e.getValue()))
 //                    return true;
@@ -183,7 +183,7 @@ package Map;
 //    /**
 //     * 传入m,将m中的所有元素放入到hashMap中
 //     */
-//    public HashMap(Map<? extends K, ? extends V> m) {
+//    public HashMap(map<? extends K, ? extends V> m) {
 //        this.loadFactor = DEFAULT_LOAD_FACTOR;
 //        putMapEntries(m, false);
 //    }
@@ -191,7 +191,7 @@ package Map;
 //    /**
 //     * m中的元素放入map中
 //     */
-//    final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
+//    final void putMapEntries(map<? extends K, ? extends V> m, boolean evict) {
 //        int s = m.size();
 //        if (s > 0) {
 //            // m中存在元素
@@ -205,7 +205,7 @@ package Map;
 //                resize();
 //
 //            // 遍历放入map中
-//            for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
+//            for (map.Entry<? extends K, ? extends V> e : m.entrySet()) {
 //                K key = e.getKey();
 //                V value = e.getValue();
 //                putVal(hash(key), key, value, false, evict);
@@ -475,7 +475,7 @@ package Map;
 //    /**
 //     * 插入m到map中(调用的putVal方法)
 //     */
-//    public void putAll(Map<? extends K, ? extends V> m) {
+//    public void putAll(map<? extends K, ? extends V> m) {
 //        putMapEntries(m, true);
 //    }
 //
@@ -489,7 +489,7 @@ package Map;
 //    }
 //
 //    /**
-//     * Implements Map.remove and related methods
+//     * Implements map.remove and related methods
 //     *
 //     * @param hash       hash for key
 //     * @param key        the key
@@ -571,7 +571,7 @@ package Map;
 //    }
 //
 //    @Override
-//    public Collection<V> values() {
+//    public collection<V> values() {
 //        return super.values();
 //    }
 //
