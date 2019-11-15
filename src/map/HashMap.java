@@ -1,11 +1,14 @@
 package map;
 
+import java.io.Serializable;
+import java.util.*;
+
 /**
  * 因为TreeNode移植不过来,所以注掉了报错代码
  * 可对比源码包查看
  */
 //public class HashMap<K, V> extends AbstractMap<K, V>
-//        implements map<K, V>, Cloneable, Serializable {
+//        implements Map<K, V>, Cloneable, Serializable {
 //
 //    /**
 //     * 序列化ID
@@ -56,7 +59,7 @@ package map;
 //     * Holds cached entrySet(). Note that AbstractMap fields are used
 //     * for keySet() and values().
 //     */
-//    transient Set<map.Entry<K, V>> entrySet;
+//    transient Set<Entry<K, V>> entrySet;
 //
 //    /**
 //     * 对HashMap修改的次数
@@ -77,7 +80,7 @@ package map;
 //    /**
 //     * Node实现了Entry接口,存放键值对(Map真正存放数据的内部类)
 //     */
-//    static class Node<K, V> implements map.Entry<K, V> {
+//    static class Node<K, V> implements Map.Entry<K, V> {
 //        final int hash;
 //        final K key;
 //        V value;
@@ -117,8 +120,8 @@ package map;
 //        public final boolean equals(Object o) {
 //            if (o == this)
 //                return true;
-//            if (o instanceof map.Entry) {
-//                map.Entry<?, ?> e = (map.Entry<?, ?>) o;
+//            if (o instanceof Map.Entry) {
+//                Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 //                if (Objects.equals(key, e.getKey()) &&
 //                        Objects.equals(value, e.getValue()))
 //                    return true;
@@ -129,6 +132,9 @@ package map;
 //
 //    /**
 //     * 重写了hash
+//     *
+//     * @param key
+//     * @return int
 //     */
 //    static final int hash(Object key) {
 //        int h;
@@ -183,15 +189,18 @@ package map;
 //    /**
 //     * 传入m,将m中的所有元素放入到hashMap中
 //     */
-//    public HashMap(map<? extends K, ? extends V> m) {
+//    public HashMap(Map<? extends K, ? extends V> m) {
 //        this.loadFactor = DEFAULT_LOAD_FACTOR;
 //        putMapEntries(m, false);
 //    }
 //
 //    /**
 //     * m中的元素放入map中
+//     *
+//     * @param m
+//     * @param evict
 //     */
-//    final void putMapEntries(map<? extends K, ? extends V> m, boolean evict) {
+//    final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
 //        int s = m.size();
 //        if (s > 0) {
 //            // m中存在元素
@@ -205,7 +214,7 @@ package map;
 //                resize();
 //
 //            // 遍历放入map中
-//            for (map.Entry<? extends K, ? extends V> e : m.entrySet()) {
+//            for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
 //                K key = e.getKey();
 //                V value = e.getValue();
 //                putVal(hash(key), key, value, false, evict);
@@ -285,7 +294,7 @@ package map;
 //        if ((tab = table) == null || (n = tab.length) == 0)
 //            // 扩容并赋值给n
 //            n = (tab = resize()).length;
-//        // (n-1)&hash -> 根据hash计算出数组下标
+//        // (n-1)&hash -> 根据hash计算出数组下标,位运算与，当比较双方两个位置都是1才为1，这样可以保证hash位置准确的落在tab长度中
 //        // tab[(n-1)&hash]为此位置的值
 //        if ((p = tab[i = (n - 1) & hash]) == null)
 //            // 为null,赋值新节点
@@ -294,14 +303,20 @@ package map;
 //            // 此位置不为null,即存在值
 //            Node<K, V> e;
 //            K k;
-//            // hash相等且(key相同(1.两个key完全相等,2.equals相等))
+//            /**
+//             * hash相等(传入的对象重写过equals的话肯定也会重写hash，所以若他们equals相等，那么hash也肯定相等)
+//             * 且(key相同(1.两个key完全相等,2.equals相等))
+//             */
 //            if (p.hash == hash &&
 //                    ((k = p.key) == key || (key != null && key.equals(k))))
 //                // 覆盖
 //                e = p;
-//
 //            else if (p instanceof TreeNode)
-//                // p属于树节点,e用来记录头节点
+//                /**
+//                 * p属于树节点,e用来记录头节点
+//                 * 红黑树参考: https://www.jianshu.com/p/e136ec79235c
+//                 * 数据可视化网站: https://visualgo.net/zh
+//                 */
 //                e = ((TreeNode<K, V>) p).putTreeVal(this, tab, hash, key, value);
 //            else {
 //                // p为链表首节点
@@ -330,6 +345,7 @@ package map;
 //                V oldValue = e.value;
 //                if (!onlyIfAbsent || oldValue == null)
 //                    e.value = value;
+//                // LinkedHashMap覆盖使用
 //                afterNodeAccess(e);
 //                return oldValue;
 //            }
@@ -337,9 +353,10 @@ package map;
 //
 //        // 更新结构修改次数
 //        ++modCount;
-//        // 是否需要扩容
+//        // 新插入元素后size是否大于threshold，并决定是否需要扩容
 //        if (++size > threshold)
 //            resize();
+//        // LinkedHashMap覆盖使用
 //        afterNodeInsertion(evict);
 //        return null;
 //    }
@@ -402,27 +419,32 @@ package map;
 //                    // 旧表j位置,置null
 //                    oldTab[j] = null;
 //                    if (e.next == null)
-//                        // 添加逻辑,和put查找位置相同
+//                        // e位置只有一个值
 //                        newTab[e.hash & (newCap - 1)] = e;
 //                    else if (e instanceof TreeNode)
-//                        // 关联着红黑树
+//                        // e位置关联着红黑树
 //                        ((TreeNode<K, V>) e).split(this, newTab, j, oldCap);
 //                    else { // preserve order
 //                        /**
-//                         * 待添加
+//                         * e位置关联着链表
 //                         */
+//                        // 链表可能会分裂为两个链表,lo存放第一个链表的首尾
 //                        Node<K, V> loHead = null, loTail = null;
+//                        // hi存放第二个链表的首尾
 //                        Node<K, V> hiHead = null, hiTail = null;
 //                        Node<K, V> next;
 //                        do {
 //                            next = e.next;
+//                            // 与原容量与运算后的值为0或1,进行不同的操作
 //                            if ((e.hash & oldCap) == 0) {
+//                                // 扩容后在原位置
 //                                if (loTail == null)
 //                                    loHead = e;
 //                                else
 //                                    loTail.next = e;
 //                                loTail = e;
 //                            } else {
+//                                // 扩容后不在原位置
 //                                if (hiTail == null)
 //                                    hiHead = e;
 //                                else
@@ -436,6 +458,7 @@ package map;
 //                        }
 //                        if (hiTail != null) {
 //                            hiTail.next = null;
+//                            // 此处有说法,可以查看博客https://blog.csdn.net/pange1991/article/details/82347284#commentBox
 //                            newTab[j + oldCap] = hiHead;
 //                        }
 //                    }
@@ -475,7 +498,7 @@ package map;
 //    /**
 //     * 插入m到map中(调用的putVal方法)
 //     */
-//    public void putAll(map<? extends K, ? extends V> m) {
+//    public void putAll(Map<? extends K, ? extends V> m) {
 //        putMapEntries(m, true);
 //    }
 //
@@ -571,7 +594,7 @@ package map;
 //    }
 //
 //    @Override
-//    public collection<V> values() {
+//    public Collection<V> values() {
 //        return super.values();
 //    }
 //
@@ -600,4 +623,4 @@ package map;
 //        return null;
 //    }
 //}
-
+//
