@@ -294,7 +294,7 @@ import java.util.*;
 //        if ((tab = table) == null || (n = tab.length) == 0)
 //            // 扩容并赋值给n
 //            n = (tab = resize()).length;
-//        // (n-1)&hash -> 根据hash计算出数组下标,位运算与，当比较双方两个位置都是1才为1，这样可以保证hash位置准确的落在tab长度中
+//        // (n-1)&hash -> 根据hash计算出数组下标,位运算与,当比较双方两个位置都是1才为1,这样可以保证hash位置准确的落在tab长度中
 //        // tab[(n-1)&hash]为此位置的值
 //        if ((p = tab[i = (n - 1) & hash]) == null)
 //            // 为null,赋值新节点
@@ -304,7 +304,7 @@ import java.util.*;
 //            Node<K, V> e;
 //            K k;
 //            /**
-//             * hash相等(传入的对象重写过equals的话肯定也会重写hash，所以若他们equals相等，那么hash也肯定相等)
+//             * hash相等(传入的对象重写过equals的话肯定也会重写hash,所以若他们equals相等,那么hash也肯定相等)
 //             * 且(key相同(1.两个key完全相等,2.equals相等))
 //             */
 //            if (p.hash == hash &&
@@ -312,11 +312,11 @@ import java.util.*;
 //                // 覆盖
 //                e = p;
 //            else if (p instanceof TreeNode)
-//                /**
-//                 * p属于树节点,e用来记录头节点
-//                 * 红黑树参考: https://www.jianshu.com/p/e136ec79235c
-//                 * 数据可视化网站: https://visualgo.net/zh
-//                 */
+//            /**
+//             * p属于树节点,e用来记录头节点
+//             * 红黑树参考: https://www.jianshu.com/p/e136ec79235c
+//             * 数据可视化网站: https://visualgo.net/zh
+//             */
 //                e = ((TreeNode<K, V>) p).putTreeVal(this, tab, hash, key, value);
 //            else {
 //                // p为链表首节点
@@ -353,7 +353,7 @@ import java.util.*;
 //
 //        // 更新结构修改次数
 //        ++modCount;
-//        // 新插入元素后size是否大于threshold，并决定是否需要扩容
+//        // 新插入元素后size是否大于threshold,并决定是否需要扩容
 //        if (++size > threshold)
 //            resize();
 //        // LinkedHashMap覆盖使用
@@ -362,6 +362,8 @@ import java.util.*;
 //    }
 //
 //    /**
+//     * jdk1.7的扩容为头插入(并发环境下可能会造成链表环)
+//     * jdk1.8的扩容为尾插入
 //     * 扩容方法
 //     * 触发条件:
 //     * 1. 默认构造首次插入键值对
@@ -444,7 +446,7 @@ import java.util.*;
 //                                    loTail.next = e;
 //                                loTail = e;
 //                            } else {
-//                                // 扩容后不在原位置
+//                                // 扩容后不在原位置,到了j+oldCap位置
 //                                if (hiTail == null)
 //                                    hiHead = e;
 //                                else
@@ -458,7 +460,7 @@ import java.util.*;
 //                        }
 //                        if (hiTail != null) {
 //                            hiTail.next = null;
-//                            // 此处有说法,可以查看博客https://blog.csdn.net/pange1991/article/details/82347284#commentBox
+//                            // 此处不懂可以查看博客https://blog.csdn.net/pange1991/article/details/82347284#commentBox
 //                            newTab[j + oldCap] = hiHead;
 //                        }
 //                    }
@@ -469,8 +471,10 @@ import java.util.*;
 //    }
 //
 //    /**
-//     * Replaces all linked nodes in bin at index for given hash unless
-//     * table is too small, in which case resizes instead.
+//     * 将指定位置的链表构建为红黑树
+//     *
+//     * @param tab
+//     * @param hash
 //     */
 //    final void treeifyBin(Node<K, V>[] tab, int hash) {
 //        int n, index;
@@ -478,9 +482,9 @@ import java.util.*;
 //        if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
 //            resize();
 //        else if ((e = tab[index = (n - 1) & hash]) != null) {
-//            // 该位置的node不为null
-//            TreeNode<K, V> hd = null, tl = null;
+//            TreeNode<K, V> hd = null, tl = null;    // hd链表头结点,tl链表尾结点
 //            do {
+//                // 替换为红黑树节点
 //                TreeNode<K, V> p = replacementTreeNode(e, null);
 //                if (tl == null)
 //                    hd = p;
@@ -491,8 +495,19 @@ import java.util.*;
 //                tl = p;
 //            } while ((e = e.next) != null);
 //            if ((tab[index] = hd) != null)
+//                // 构建红黑树-->树化❀
 //                hd.treeify(tab);
 //        }
+//    }
+//
+//    /**
+//     * 将Node节点替换为红黑树节点
+//     *
+//     * @param p
+//     * @param next
+//     */
+//    TreeNode<K, V> replacementTreeNode(Node<K, V> p, Node<K, V> next) {
+//        return new TreeNode<>(p.hash, p.key, p.value, next);
 //    }
 //
 //    /**
@@ -522,7 +537,7 @@ import java.util.*;
 //     * @return the node, or null if none
 //     */
 //    final Node<K, V> removeNode(int hash, Object key, Object value,
-//                                                  boolean matchValue, boolean movable) {
+//                                boolean matchValue, boolean movable) {
 //        Node<K, V>[] tab;
 //        Node<K, V> p;
 //        int n, index;
@@ -579,9 +594,17 @@ import java.util.*;
 //        }
 //    }
 //
-//    void afterNodeAccess(Node<K,V> p) { }
-//    void afterNodeInsertion(boolean evict) { }
-//    void afterNodeRemoval(Node<K,V> p) { }
+//    // 由LinkedList覆盖
+//    void afterNodeAccess(Node<K, V> p) {
+//    }
+//
+//    // 由LinkedList覆盖
+//    void afterNodeInsertion(boolean evict) {
+//    }
+//
+//    // 由LinkedList覆盖
+//    void afterNodeRemoval(Node<K, V> p) {
+//    }
 //
 //    @Override
 //    public boolean containsValue(Object value) {
@@ -622,5 +645,8 @@ import java.util.*;
 //    public Set<Entry<K, V>> entrySet() {
 //        return null;
 //    }
+//
+//    // 红黑树部分代码讲解的博客:https://www.cnblogs.com/finite/p/8251587.html
 //}
+//
 //
