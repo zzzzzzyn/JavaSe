@@ -1,9 +1,14 @@
+package java8.datetime;
+
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
- * java8 日历类
+ * java8 日期类
  * 加强对日期时间的处理
+ * api: http://www.matools.com/api/java8
+ *
  * @author xyn
  * @description 描述信息
  * @data 2019/11/20 22:14
@@ -36,9 +41,36 @@ public class LocalDateTimeTest {
         DayOfWeek dayOfWeek = currentTime.getDayOfWeek();
         System.out.println("今天是星期" + dayOfWeek.getValue());
 
-        // 设置时间
+        // ------------------------------------分割线------------------------------------
+
+        // 日期时间格式化
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String format = currentTime.format(dtf);
+        System.out.println("格式化时间: " + format);
+        String dateTime = "2007-12-03T10:15:30";
+        LocalDateTime parseDateTime = LocalDateTime.parse(dateTime);
+        System.out.println("字符串转换后的时间为: " + parseDateTime);
+        dateTime = "2007-12-03 10:15:30";
+        parseDateTime = LocalDateTime.parse(dateTime, dtf);
+        System.out.println("格式化时间字符串转换后时间为: " + parseDateTime);
+
+
+        // of...()系列方法 设置日期时间
         LocalDateTime localDateTime = LocalDateTime.of(1997, 1, 18, 11, 9);
         System.out.println(localDateTime);
+
+        /**
+         * 运算操作
+         * minus...()系列方法 -
+         * plus...()系列方法 +
+         */
+        LocalDateTime localDateTime1 = localDateTime.minusSeconds(1);
+        System.out.println("修剪后的时间为: " + localDateTime1);
+        localDateTime1 = localDateTime.plusSeconds(1);
+        System.out.println("修剪后的时间为: " + localDateTime1);
+        // 增加一星期
+        localDateTime1 = localDateTime.plusWeeks(1);
+        System.out.println("修剪后的时间为: " + localDateTime1);
 
         // with...()系列方法,修改时间并返回
         localDateTime = localDateTime.withYear(1998);
