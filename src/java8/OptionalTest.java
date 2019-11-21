@@ -2,9 +2,7 @@ package java8;
 
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * java8新特性
