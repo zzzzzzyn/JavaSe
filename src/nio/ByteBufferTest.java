@@ -18,6 +18,11 @@ public class ByteBufferTest {
     public static void main(String[] args) {
 
         byte[] data = "我们遇到什么困难，也不要怕".getBytes();
+
+        /**
+         * allocateDirect是创建DirectByteBuffer，申请的空间是在*堆外*的，在元空间中
+         * allocate是创建HeapByteBuffer，申请的空间是在*堆内*的
+         */
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
         byteBuffer.put(data);
 
