@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
 public class ByteBufferTest {
     public static void main(String[] args) {
 
-        byte[] data = "我们遇到什么困难，也不要怕".getBytes();
+        byte[] data = ("今朝郡斋冷，忽念山中客").getBytes();
 
         /**
          * allocateDirect是创建DirectByteBuffer，申请的空间是在*堆外*的，在元空间中
