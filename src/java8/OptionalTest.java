@@ -28,7 +28,7 @@ public class OptionalTest {
         // 不要使用isPresent()，这跟==null好像没什么差别
         // 另外optional可以使用链式编程，是真的方便
 
-        // -----------------------------------构造-----------------------------------
+        /* -----------------------------------构造----------------------------------- */
 
         /**
          * Optional构造
@@ -63,7 +63,7 @@ public class OptionalTest {
         optional = Optional.ofNullable(asList);
         optional.ifPresent(System.out::println);
 
-        // -----------------------------------orElse-----------------------------------
+        /* -----------------------------------orElse----------------------------------- */
 
         /**
          * orElse(T other)
@@ -88,7 +88,7 @@ public class OptionalTest {
         optional = Optional.empty();
         System.out.println(optional.orElseThrow(NullPointerException::new));
 
-        // ----------------------------------------------------------------------------
+        /* ---------------------------------------------------------------------------- */
 
         /**
          * filter(Predicate<? super T> predicate)
