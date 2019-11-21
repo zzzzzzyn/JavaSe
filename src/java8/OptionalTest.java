@@ -43,6 +43,7 @@ public class OptionalTest {
         /**
          * get() 获取Optional的value
          * 通过源码可知，value为null会throw NoSuchElementException
+         * 尽量避免使用，用orElse()替代
          */
         // System.out.println(optional.get());
         System.out.println(optionalS.get());
