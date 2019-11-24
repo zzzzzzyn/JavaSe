@@ -29,7 +29,7 @@ public class ByteBufferTest {
         /* 模式切换==》实际是改变position，limit和mark的位置 */
         byteBuffer.flip();
 
-        data = new byte[data.length];
+        data = new byte[byteBuffer.limit()];
         byteBuffer.get(data);
 
         System.out.println(new String(data));
