@@ -29,7 +29,7 @@ public class SelectorTest {
         // 创建selector
         Selector selector = Selector.open();
 
-        // 注册selector并制定感兴趣的事件
+        // 注册selector并指定感兴趣的事件
         ssc.register(selector, SelectionKey.OP_ACCEPT);
 
         while (true) {
@@ -47,12 +47,14 @@ public class SelectorTest {
                 iterator.remove();
 
                 if (selectionKey.isAcceptable()) {
+                    // 接收事件
 
                     SocketChannel socketChannel = ssc.accept();
                     socketChannel.configureBlocking(false);
                     socketChannel.register(selector, SelectionKey.OP_READ);
 
                 } else if (selectionKey.isReadable()) {
+                    // 读事件
 
                     ByteBuffer byteBuffer = ByteBuffer.allocate(4096);
                     SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
@@ -64,6 +66,7 @@ public class SelectorTest {
                     selectionKey.interestOps(SelectionKey.OP_WRITE);
 
                 } else if (selectionKey.isWritable()) {
+                    // 写事件
 
                     ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
                     byteBuffer.put(RESPONSE_TEXT.getBytes());
