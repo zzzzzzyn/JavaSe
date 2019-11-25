@@ -5,8 +5,15 @@ import java.lang.ref.WeakReference;
 
 /**
  * Reference:
- *     WeakReference -> 弱引用
- * api: http://www.matools.com/api/java8
+ *     SoftReference    -> 软引用: 发生gc且空间不够时被回收(通过最大堆内存-上次gc剩余内存来决定是否回收，
+ *                                 在1.7的文档介绍中使用此类做简单缓存)
+ *     WeakReference    -> 弱引用: 发生gc时必定被回收
+ *     PhantomReference -> 虚引用: 引用后和没引用没啥区别，随时可能被回收
+ *     来自: https://zhuanlan.zhihu.com/p/28226360
+ *
+ * jps: 查看java进程id和函数名称
+ * jstat -gcutil 进程号 : 显示垃圾收集信息
+ *     命令参考: https://blog.csdn.net/l2580258/article/details/80147602
  *
  * @author xyn
  * @description 描述信息
@@ -20,6 +27,10 @@ public class WeakReferenceTest {
             System.out.println("not null before gc");
         }
 
+        /**
+         * hotspot会调用full gc
+         * 可通过-XX:DisableExplicitGC 使程序中的System.gc()失效
+         */
         System.gc();
 
         if (wr.get() != null) {
