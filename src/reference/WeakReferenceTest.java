@@ -15,6 +15,9 @@ import java.lang.ref.WeakReference;
  * jstat -gcutil 进程号 : 显示垃圾收集信息
  *     命令参考: https://blog.csdn.net/l2580258/article/details/80147602
  *
+ * jvm:
+ *     实用参数: http://ifeve.com/useful-jvm-flags/
+ *
  * @author xyn
  * @description 描述信息
  * @data 2019/11/20 22:14
