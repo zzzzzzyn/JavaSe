@@ -14,26 +14,27 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @data 2019/11/28 16:07
  */
 public class AtomicIntegerTest {
-    private AtomicInteger atomicInteger = new AtomicInteger(0);
-
     public static void main(String[] args) {
+        AtomicInteger ai = new AtomicInteger(0);
 
+        /**
+         * 原子方式自增1
+         */
+        ai.getAndIncrement();
+        System.out.println(ai.get());
 
-    }
+        /**
+         * 原子方式设置ai的value为10
+         */
+        ai.getAndSet(10);
+        System.out.println(ai.get());
 
-
-    /* 加锁 */
-    private void lock() {
-        for (; ; ) {
-            /* 大名鼎鼎的cas，线程获取锁就是用它来做的 */
-            if (atomicInteger.get() == 0)
-                return;
-
-
-        }
-    }
-
-    private void unlock() {
-        atomicInteger.set(0);
+        /**
+         * 比较并设置
+         * 如果与期望值(10)相同，则原子方式设置ai的value为20
+         * 此方法使用较多，可以用来做锁的持有状态判断
+         */
+        ai.compareAndSet(10, 20);
+        System.out.println(ai.get());
     }
 }
