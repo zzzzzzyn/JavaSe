@@ -4,7 +4,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * ArrayBlockingQueue ---> 数组实现的有界阻塞队列
+ * ArrayBlockingQueue ---> 数组实现的有界阻塞队列，FIFO原则对元素进行排序
  * 用ArrayBlockingQueue做消息队列实现一个简单的生产消费模型
  * put()阻塞添加方法
  * task()阻塞移除方法
