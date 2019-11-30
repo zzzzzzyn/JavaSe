@@ -21,7 +21,6 @@ public class ArrayBlockingQueueTest {
          * 不过相应的生产消费也需要根据需求进行更替
          */
         BlockingQueue<Integer> blockingQueue = new ArrayBlockingQueue<>(2);
-
         Produce produce = new Produce(blockingQueue);
         Consumer consumer = new Consumer(blockingQueue);
         Thread t1 = new Thread(produce);
