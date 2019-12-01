@@ -72,7 +72,7 @@ public class ArrayBlockingQueueTest {
         public void run() {
             while (true) {
                 try {
-                    // 一秒消费一次
+                    // 五秒消费一次
                     Thread.sleep(5000);
                     System.err.println("消费: " + blockingQueue.take());
                 } catch (InterruptedException e) {
