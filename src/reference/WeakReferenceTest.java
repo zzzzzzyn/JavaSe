@@ -7,7 +7,7 @@ import java.lang.ref.WeakReference;
  * Reference:
  *     SoftReference    -> 软引用: 发生gc且空间不够时被回收(通过最大堆内存-上次gc剩余内存来决定是否回收，
  *                                 在1.7的文档介绍中使用此类做简单缓存)
- *     WeakReference    -> 弱引用: 发生gc时必定被回收
+ *     WeakReference    -> 弱引用: 发生gc时必定被回收 -->也可做缓存
  *     PhantomReference -> 虚引用: 引用后和没引用没啥区别，随时可能被回收
  *     来自: https://zhuanlan.zhihu.com/p/28226360
  *
@@ -24,6 +24,7 @@ import java.lang.ref.WeakReference;
  */
 public class WeakReferenceTest {
     public static void main(String[] args) {
+        // 听说mybatis缓存就用的弱引用
         WeakReference<Object> wr = new WeakReference<Object>(new Object());
 
         if (wr.get() != null) {
