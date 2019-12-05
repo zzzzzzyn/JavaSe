@@ -1,7 +1,7 @@
 package concurrent.lock;
 
-import java.util.concurrent.TimeUnit;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -23,40 +23,62 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         private static final long serialVersionUID = -5179523762034025860L;
 
         /**
-         * Performs {@link Lock#lock}. The main reason for subclassing
-         * is to allow fast path for nonfair version.
+         * 加锁(被覆盖)
          */
         abstract void lock();
 
         /**
-         * Performs non-fair tryLock.  tryAcquire is implemented in
-         * subclasses, but both need nonfair try for trylock method.
+         * 非公平获取同步状态
+         *
+         * @param acquires
+         * @return boolean
          */
         final boolean nonfairTryAcquire(int acquires) {
             final Thread current = Thread.currentThread();
             int c = getState();
             if (c == 0) {
+                // c为同步状态=0说明锁没有被任何线程持有
                 if (compareAndSetState(0, acquires)) {
+                    // 原子设置成功后，设置当前线程为锁的独占持有者并返回
                     setExclusiveOwnerThread(current);
                     return true;
                 }
             }
             else if (current == getExclusiveOwnerThread()) {
+                /**
+                 * 此线程是重进入
+                 * nextc为下一次设置的同步状态
+                 * 因为此线程是锁的持有者，所以设置同步状态不需要使用原子方式
+                 */
                 int nextc = c + acquires;
                 if (nextc < 0) // overflow
                     throw new Error("Maximum lock count exceeded");
                 setState(nextc);
                 return true;
             }
+            // 获取失败，返回
             return false;
         }
 
+        /**
+         * 独占释放同步状态
+         *
+         * @param releases
+         * @return boolean
+         */
         protected final boolean tryRelease(int releases) {
+            // 一般情况下release为1，持有锁的线程每一次离开，都会同步状态都会-1
             int c = getState() - releases;
             if (Thread.currentThread() != getExclusiveOwnerThread())
                 throw new IllegalMonitorStateException();
+            // free: 可以理解为锁是否被释放
             boolean free = false;
             if (c == 0) {
+                /**
+                 * c=0说明锁被释放，此时需要：
+                 *      1. 设置free为true
+                 *      2. 设置锁的持有者为null
+                 */
                 free = true;
                 setExclusiveOwnerThread(null);
             }
@@ -64,6 +86,11 @@ public class ReentrantLock implements Lock, java.io.Serializable {
             return free;
         }
 
+        /**
+         * 同步器是否被当前线程独占
+         *
+         * @return boolean
+         */
         protected final boolean isHeldExclusively() {
             // While we must in general read state before owner,
             // we don't need to do so to check if current thread is owner
@@ -75,15 +102,29 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         }
 
         // Methods relayed from outer class
+        // 从外部类继承来的方法
 
+        /**
+         * 获取锁的持有者
+         *
+         * @return Thread
+         */
         final Thread getOwner() {
             return getState() == 0 ? null : getExclusiveOwnerThread();
         }
 
+        /**
+         * 获取计数器
+         *
+         * @return int
+         */
         final int getHoldCount() {
             return isHeldExclusively() ? getState() : 0;
         }
 
+        /**
+         * 锁是否被持有
+         */
         final boolean isLocked() {
             return getState() != 0;
         }
@@ -99,7 +140,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * Sync object for non-fair locks
+     * Sync对象的非公平锁实现
      */
     static final class NonfairSync extends Sync {
         private static final long serialVersionUID = 7316153563782823691L;
@@ -121,7 +162,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * Sync object for fair locks
+     * Sync对象的公平锁实现
      */
     static final class FairSync extends Sync {
         private static final long serialVersionUID = -3000897897090466540L;
@@ -131,8 +172,10 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         }
 
         /**
-         * Fair version of tryAcquire.  Don't grant access unless
-         * recursive call or no waiters or is first.
+         * 尝试获取同步状态(公平锁)
+         *
+         * @param acquires
+         * @return boolean
          */
         protected final boolean tryAcquire(int acquires) {
             final Thread current = Thread.currentThread();
@@ -203,67 +246,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * Acquires the lock if it is not held by another thread within the given
-     * waiting time and the current thread has not been
-     * {@linkplain Thread#interrupt interrupted}.
-     *
-     * <p>Acquires the lock if it is not held by another thread and returns
-     * immediately with the value {@code true}, setting the lock hold count
-     * to one. If this lock has been set to use a fair ordering policy then
-     * an available lock <em>will not</em> be acquired if any other threads
-     * are waiting for the lock. This is in contrast to the {@link #tryLock()}
-     * method. If you want a timed {@code tryLock} that does permit barging on
-     * a fair lock then combine the timed and un-timed forms together:
-     *
-     *  <pre> {@code
-     * if (lock.tryLock() ||
-     *     lock.tryLock(timeout, unit)) {
-     *   ...
-     * }}</pre>
-     *
-     * <p>If the current thread
-     * already holds this lock then the hold count is incremented by one and
-     * the method returns {@code true}.
-     *
-     * <p>If the lock is held by another thread then the
-     * current thread becomes disabled for thread scheduling
-     * purposes and lies dormant until one of three things happens:
-     *
-     * <ul>
-     *
-     * <li>The lock is acquired by the current thread; or
-     *
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts}
-     * the current thread; or
-     *
-     * <li>The specified waiting time elapses
-     *
-     * </ul>
-     *
-     * <p>If the lock is acquired then the value {@code true} is returned and
-     * the lock hold count is set to one.
-     *
-     * <p>If the current thread:
-     *
-     * <ul>
-     *
-     * <li>has its interrupted status set on entry to this method; or
-     *
-     * <li>is {@linkplain Thread#interrupt interrupted} while
-     * acquiring the lock,
-     *
-     * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's
-     * interrupted status is cleared.
-     *
-     * <p>If the specified waiting time elapses then the value {@code false}
-     * is returned.  If the time is less than or equal to zero, the method
-     * will not wait at all.
-     *
-     * <p>In this implementation, as this method is an explicit
-     * interruption point, preference is given to responding to the
-     * interrupt over normal or reentrant acquisition of the lock, and
-     * over reporting the elapse of the waiting time.
+     * 尝试获取锁(超时等待且可响应中断)
      *
      * @param timeout the time to wait for the lock
      * @param unit the time unit of the timeout argument
@@ -313,108 +296,52 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * Queries if this lock is held by the current thread.
+     * 查询线程所有者是否为此线程
      *
-     * <p>Analogous to the {@link Thread#holdsLock(Object)} method for
-     * built-in monitor locks, this method is typically used for
-     * debugging and testing. For example, a method that should only be
-     * called while a lock is held can assert that this is the case:
-     *
-     *  <pre> {@code
-     * class X {
-     *   ReentrantLock lock = new ReentrantLock();
-     *   // ...
-     *
-     *   public void m() {
-     *       assert lock.isHeldByCurrentThread();
-     *       // ... method body
-     *   }
-     * }}</pre>
-     *
-     * <p>It can also be used to ensure that a reentrant lock is used
-     * in a non-reentrant manner, for example:
-     *
-     *  <pre> {@code
-     * class X {
-     *   ReentrantLock lock = new ReentrantLock();
-     *   // ...
-     *
-     *   public void m() {
-     *       assert !lock.isHeldByCurrentThread();
-     *       lock.lock();
-     *       try {
-     *           // ... method body
-     *       } finally {
-     *           lock.unlock();
-     *       }
-     *   }
-     * }}</pre>
-     *
-     * @return {@code true} if current thread holds this lock and
-     *         {@code false} otherwise
+     * @return boolean
      */
     public boolean isHeldByCurrentThread() {
         return sync.isHeldExclusively();
     }
 
     /**
-     * Queries if this lock is held by any thread. This method is
-     * designed for use in monitoring of the system state,
-     * not for synchronization control.
+     * 查看锁是否被线程持有
      *
-     * @return {@code true} if any thread holds this lock and
-     *         {@code false} otherwise
+     * @return boolean
      */
     public boolean isLocked() {
         return sync.isLocked();
     }
 
     /**
-     * Returns {@code true} if this lock has fairness set true.
+     * 是否公平锁
      *
-     * @return {@code true} if this lock has fairness set true
+     * @return boolean
      */
     public final boolean isFair() {
         return sync instanceof FairSync;
     }
 
     /**
-     * Returns the thread that currently owns this lock, or
-     * {@code null} if not owned. When this method is called by a
-     * thread that is not the owner, the return value reflects a
-     * best-effort approximation of current lock status. For example,
-     * the owner may be momentarily {@code null} even if there are
-     * threads trying to acquire the lock but have not yet done so.
-     * This method is designed to facilitate construction of
-     * subclasses that provide more extensive lock monitoring
-     * facilities.
+     * 获取锁的持有者
      *
-     * @return the owner, or {@code null} if not owned
+     * @return Thread
      */
     protected Thread getOwner() {
         return sync.getOwner();
     }
 
     /**
-     * Queries whether any threads are waiting to acquire this lock. Note that
-     * because cancellations may occur at any time, a {@code true}
-     * return does not guarantee that any other thread will ever
-     * acquire this lock.  This method is designed primarily for use in
-     * monitoring of the system state.
+     * 队列(aqs中实现)中是否有线程等待获取锁
      *
-     * @return {@code true} if there may be other threads waiting to
-     *         acquire the lock
+     * @return boolean
      */
     public final boolean hasQueuedThreads() {
         return sync.hasQueuedThreads();
     }
 
     /**
-     * Queries whether the given thread is waiting to acquire this
-     * lock. Note that because cancellations may occur at any time, a
-     * {@code true} return does not guarantee that this thread
-     * will ever acquire this lock.  This method is designed primarily for use
-     * in monitoring of the system state.
+     * 查看thread是否在队列中等待锁
      *
      * @param thread the thread
      * @return {@code true} if the given thread is queued waiting for this lock
@@ -425,12 +352,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * Returns an estimate of the number of threads waiting to
-     * acquire this lock.  The value is only an estimate because the number of
-     * threads may change dynamically while this method traverses
-     * internal data structures.  This method is designed for use in
-     * monitoring of the system state, not for synchronization
-     * control.
+     * 获取队列的长度(即等待锁的线程数量)
      *
      * @return the estimated number of threads waiting for this lock
      */
@@ -439,27 +361,16 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * Returns a collection containing threads that may be waiting to
-     * acquire this lock.  Because the actual set of threads may change
-     * dynamically while constructing this result, the returned
-     * collection is only a best-effort estimate.  The elements of the
-     * returned collection are in no particular order.  This method is
-     * designed to facilitate construction of subclasses that provide
-     * more extensive monitoring facilities.
+     * 返回队列中等待该锁的线程的集合
      *
-     * @return the collection of threads
+     * @return Collection<Thread> the collection of threads
      */
     protected Collection<Thread> getQueuedThreads() {
         return sync.getQueuedThreads();
     }
 
     /**
-     * Queries whether any threads are waiting on the given condition
-     * associated with this lock. Note that because timeouts and
-     * interrupts may occur at any time, a {@code true} return does
-     * not guarantee that a future {@code signal} will awaken any
-     * threads.  This method is designed primarily for use in
-     * monitoring of the system state.
+     * 是否有线程等待condition
      *
      * @param condition the condition
      * @return {@code true} if there are any waiting threads
