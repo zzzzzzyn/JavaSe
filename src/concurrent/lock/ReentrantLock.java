@@ -23,7 +23,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         private static final long serialVersionUID = -5179523762034025860L;
 
         /**
-         * 加锁(被覆盖)
+         * 加锁(由子类重写)
          */
         abstract void lock();
 
@@ -145,10 +145,6 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     static final class NonfairSync extends Sync {
         private static final long serialVersionUID = 7316153563782823691L;
 
-        /**
-         * Performs lock.  Try immediate barge, backing up to normal
-         * acquire on failure.
-         */
         final void lock() {
             if (compareAndSetState(0, 1))
                 setExclusiveOwnerThread(Thread.currentThread());
@@ -181,6 +177,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
             final Thread current = Thread.currentThread();
             int c = getState();
             if (c == 0) {
+                // 检查同步队列中是否有比自己等待时间更长的线程并尝试原子设置同步状态
                 if (!hasQueuedPredecessors() &&
                         compareAndSetState(0, acquires)) {
                     setExclusiveOwnerThread(current);
