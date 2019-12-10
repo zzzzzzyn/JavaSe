@@ -270,8 +270,6 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 以CAS+自旋方式尝试原子插入node直至成功
-     * @param node the node to insert
-     * @return node's predecessor
      */
     private Node enq(final Node node) {
         for (;;) {
@@ -292,9 +290,6 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * CAS+自旋方式将节点加入到队列尾部
-     *
-     * @param mode Node.EXCLUSIVE for exclusive, Node.SHARED for shared
-     * @return the new node
      */
     private Node addWaiter(Node mode) {
         Node node = new Node(Thread.currentThread(), mode);
@@ -354,13 +349,15 @@ public abstract class AbstractQueuedSynchronizer
          */
         Node s = node.next;
         if (s == null || s.waitStatus > 0) {
+            // 后继节点为空或后继节点取消
             s = null;
             for (Node t = tail; t != null && t != node; t = t.prev)
                 if (t.waitStatus <= 0)
                     s = t;
         }
+        // 此处判断的原因是s可能在执行到这前中断或从队列中取消了
         if (s != null)
-            LockSupport.unpark(s.thread);
+            LockSupport.unpark(s.thread);   // 唤醒s的线程
     }
 
     /**
@@ -447,7 +444,6 @@ public abstract class AbstractQueuedSynchronizer
 
         node.thread = null;
 
-
         /**
          * 前驱节点等待状态为CANCELLED，则以前驱节点为起点向前遍历，
          * 找到第一个等待状态不为CANCELLED的节点，并设置为node的前驱
@@ -518,9 +514,6 @@ public abstract class AbstractQueuedSynchronizer
             /*
              * 等待状态为 0 或 PROPAGATE，设置前驱节点等待状态为SIGNAL
              * 并在此尝试获取同步状态
-             * waitStatus must be 0 or PROPAGATE.  Indicate that we
-             * need a signal, but don't park yet.  Caller will need to
-             * retry to make sure it cannot acquire before parking.
              */
             compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
         }
@@ -591,7 +584,6 @@ public abstract class AbstractQueuedSynchronizer
                     interrupted = true;
             }
         } finally {
-
             /**
              * 因为tryAcquire()方法是被覆盖的，所以可能会出现异常，
              * 此时的failed为true，执行cancelAcquire(node)
@@ -629,46 +621,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in exclusive timed mode.
-     *
-     * @param arg the acquire argument
-     * @param nanosTimeout max wait time
-     * @return {@code true} if acquired
-     */
-    private boolean doAcquireNanos(int arg, long nanosTimeout)
-            throws InterruptedException {
-        if (nanosTimeout <= 0L)
-            return false;
-        final long deadline = System.nanoTime() + nanosTimeout;
-        final Node node = addWaiter(Node.EXCLUSIVE);
-        boolean failed = true;
-        try {
-            for (;;) {
-                final Node p = node.predecessor();
-                if (p == head && tryAcquire(arg)) {
-                    setHead(node);
-                    p.next = null; // help GC
-                    failed = false;
-                    return true;
-                }
-                nanosTimeout = deadline - System.nanoTime();
-                if (nanosTimeout <= 0L)
-                    return false;
-                if (shouldParkAfterFailedAcquire(p, node) &&
-                        nanosTimeout > spinForTimeoutThreshold)
-                    LockSupport.parkNanos(this, nanosTimeout);
-                if (Thread.interrupted())
-                    throw new InterruptedException();
-            }
-        } finally {
-            if (failed)
-                cancelAcquire(node);
-        }
-    }
-
-    /**
-     * Acquires in shared uninterruptible mode.
-     * @param arg the acquire argument
+     * 共享式不间断获取同步状态
      */
     private void doAcquireShared(int arg) {
         final Node node = addWaiter(Node.SHARED);
@@ -678,6 +631,7 @@ public abstract class AbstractQueuedSynchronizer
             for (;;) {
                 final Node p = node.predecessor();
                 if (p == head) {
+                    // 尝试共享式获取同步状态，若获取成功r >= 0
                     int r = tryAcquireShared(arg);
                     if (r >= 0) {
                         setHeadAndPropagate(node, r);
@@ -828,36 +782,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Attempts to acquire in shared mode. This method should query if
-     * the state of the object permits it to be acquired in the shared
-     * mode, and if so to acquire it.
-     *
-     * <p>This method is always invoked by the thread performing
-     * acquire.  If this method reports failure, the acquire method
-     * may queue the thread, if it is not already queued, until it is
-     * signalled by a release from some other thread.
-     *
-     * <p>The default implementation throws {@link
-     * UnsupportedOperationException}.
-     *
-     * @param arg the acquire argument. This value is always the one
-     *        passed to an acquire method, or is the value saved on entry
-     *        to a condition wait.  The value is otherwise uninterpreted
-     *        and can represent anything you like.
-     * @return a negative value on failure; zero if acquisition in shared
-     *         mode succeeded but no subsequent shared-mode acquire can
-     *         succeed; and a positive value if acquisition in shared
-     *         mode succeeded and subsequent shared-mode acquires might
-     *         also succeed, in which case a subsequent waiting thread
-     *         must check availability. (Support for three different
-     *         return values enables this method to be used in contexts
-     *         where acquires only sometimes act exclusively.)  Upon
-     *         success, this object has been acquired.
-     * @throws IllegalMonitorStateException if acquiring would place this
-     *         synchronizer in an illegal state. This exception must be
-     *         thrown in a consistent fashion for synchronization to work
-     *         correctly.
-     * @throws UnsupportedOperationException if shared mode is not supported
+     * 尝试共享式获取同步状态，被继承类覆盖写
      */
     protected int tryAcquireShared(int arg) {
         throw new UnsupportedOperationException();
@@ -950,21 +875,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Attempts to acquire in exclusive mode, aborting if interrupted,
-     * and failing if the given timeout elapses.  Implemented by first
-     * checking interrupt status, then invoking at least once {@link
-     * #tryAcquire}, returning on success.  Otherwise, the thread is
-     * queued, possibly repeatedly blocking and unblocking, invoking
-     * {@link #tryAcquire} until success or the thread is interrupted
-     * or the timeout elapses.  This method can be used to implement
-     * method {@link Lock#tryLock(long, TimeUnit)}.
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *        {@link #tryAcquire} but is otherwise uninterpreted and
-     *        can represent anything you like.
-     * @param nanosTimeout the maximum number of nanoseconds to wait
-     * @return {@code true} if acquired; {@code false} if timed out
-     * @throws InterruptedException if the current thread is interrupted
+     * 独占式超时获取同步状态
      */
     public final boolean tryAcquireNanos(int arg, long nanosTimeout)
             throws InterruptedException {
@@ -975,14 +886,45 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Releases in exclusive mode.  Implemented by unblocking one or
-     * more threads if {@link #tryRelease} returns true.
-     * This method can be used to implement method {@link Lock#unlock}.
-     *
-     * @param arg the release argument.  This value is conveyed to
-     *        {@link #tryRelease} but is otherwise uninterpreted and
-     *        can represent anything you like.
-     * @return the value returned from {@link #tryRelease}
+     * 独占式定时获取同步状态
+     */
+    private boolean doAcquireNanos(int arg, long nanosTimeout)
+            throws InterruptedException {
+        if (nanosTimeout <= 0L)
+            return false;
+        // 超时时间
+        final long deadline = System.nanoTime() + nanosTimeout;
+        final Node node = addWaiter(Node.EXCLUSIVE);
+        boolean failed = true;
+        try {
+            for (;;) {
+                final Node p = node.predecessor();
+                if (p == head && tryAcquire(arg)) {
+                    // 获取同步状态成功
+                    setHead(node);
+                    p.next = null; // help GC
+                    failed = false;
+                    return true;
+                }
+                nanosTimeout = deadline - System.nanoTime();
+                // 超时，返回
+                if (nanosTimeout <= 0L)
+                    return false;
+                if (shouldParkAfterFailedAcquire(p, node) &&
+                        nanosTimeout > spinForTimeoutThreshold)
+                    LockSupport.parkNanos(this, nanosTimeout);
+                if (Thread.interrupted())
+                    throw new InterruptedException();
+            }
+        } finally {
+            if (failed)
+                cancelAcquire(node);
+        }
+    }
+
+    /**
+     * 独占式释放同步状态，会在释放同步状态后，
+     * 将同步队列中首节点包含的线程唤醒
      */
     public final boolean release(int arg) {
         if (tryRelease(arg)) {
@@ -995,15 +937,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in shared mode, ignoring interrupts.  Implemented by
-     * first invoking at least once {@link #tryAcquireShared},
-     * returning on success.  Otherwise the thread is queued, possibly
-     * repeatedly blocking and unblocking, invoking {@link
-     * #tryAcquireShared} until success.
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *        {@link #tryAcquireShared} but is otherwise uninterpreted
-     *        and can represent anything you like.
+     * 共享式获取同步状态
      */
     public final void acquireShared(int arg) {
         if (tryAcquireShared(arg) < 0)
@@ -1056,13 +990,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Releases in shared mode.  Implemented by unblocking one or more
-     * threads if {@link #tryReleaseShared} returns true.
-     *
-     * @param arg the release argument.  This value is conveyed to
-     *        {@link #tryReleaseShared} but is otherwise uninterpreted
-     *        and can represent anything you like.
-     * @return the value returned from {@link #tryReleaseShared}
+     * 共享式释放同步状态
      */
     public final boolean releaseShared(int arg) {
         if (tryReleaseShared(arg)) {
