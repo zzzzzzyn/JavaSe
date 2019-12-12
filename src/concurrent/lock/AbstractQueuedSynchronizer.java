@@ -237,9 +237,7 @@ public abstract class AbstractQueuedSynchronizer
     private transient volatile Node tail;
 
     /**
-     * The number of nanoseconds for which it is faster to spin
-     * rather than to use timed park. A rough estimate suffices
-     * to improve responsiveness with very short timeouts.
+     * 自旋超时阈值(超时设置同步状态时使用)
      */
     static final long spinForTimeoutThreshold = 1000L;
 
@@ -251,7 +249,7 @@ public abstract class AbstractQueuedSynchronizer
     /*----------------------修改同步状态的方法----------------------*/
 
     /**
-     * 获取同步状态的值
+     * 获取同步状态
      */
     protected final int getState() {
         return state;
@@ -319,17 +317,14 @@ public abstract class AbstractQueuedSynchronizer
      */
 
     /**
-     * 独占获取锁
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *            {@link #tryAcquire} but is otherwise uninterpreted and
-     *            can represent anything you like.
+     * 独占式获取同步状态
      */
     public final void acquire(int arg) {
         /**
          * 尝试设置同步状态：
-         *     1. 设置成功，返回
-         *     2. 设置失败，加入同步队列
+         *     1. 设置成功-->tryAcquire(arg)为true，返回
+         *     2. 设置失败-->tryAcquire(arg)为false，
+         *        进而将线程做成节点加入同步队列
          */
         if (!tryAcquire(arg) &&
                 acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
@@ -337,31 +332,23 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in exclusive mode, aborting if interrupted.
-     * Implemented by first checking interrupt status, then invoking
-     * at least once {@link #tryAcquire}, returning on
-     * success.  Otherwise the thread is queued, possibly repeatedly
-     * blocking and unblocking, invoking {@link #tryAcquire}
-     * until success or the thread is interrupted.  This method can be
-     * used to implement method {@link Lock#lockInterruptibly}.
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *            {@link #tryAcquire} but is otherwise uninterpreted and
-     *            can represent anything you like.
-     * @throws InterruptedException if the current thread is interrupted
+     * 独占式获取同步状态(可中断)
+     * @throws InterruptedException 当前线程被中断
      */
     public final void acquireInterruptibly(int arg)
             throws InterruptedException {
-        // 测试当前线程是否已中断
+        // 判断当前线程是否已中断
         if (Thread.interrupted())
             throw new InterruptedException();
         // 尝试获取同步状态，会立即返回
         if (!tryAcquire(arg))
+            // 获取失败，执行到该方法
             doAcquireInterruptibly(arg);
     }
 
     /**
      * 独占式超时获取同步状态
+     * @throws InterruptedException 被中断
      */
     public final boolean tryAcquireNanos(int arg, long nanosTimeout)
             throws InterruptedException {
@@ -373,6 +360,8 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 独占式定时获取同步状态
+     *
+     * @param nanosTimeout 超时的纳秒
      */
     private boolean doAcquireNanos(int arg, long nanosTimeout)
             throws InterruptedException {
@@ -398,6 +387,7 @@ public abstract class AbstractQueuedSynchronizer
                     return false;
                 if (shouldParkAfterFailedAcquire(p, node) &&
                         nanosTimeout > spinForTimeoutThreshold)
+                    // 阻塞当前线程nanosTimeout纳秒
                     LockSupport.parkNanos(this, nanosTimeout);
                 if (Thread.interrupted())
                     throw new InterruptedException();
@@ -429,7 +419,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * CAS+自旋方式将节点加入到队列尾部
+     * CAS+自旋方式将节点加入到同步队列尾部
      */
     private Node addWaiter(Node mode) {
         Node node = new Node(Thread.currentThread(), mode);
@@ -456,8 +446,6 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 设置头结点
-     *
-     * @param node the node
      */
     private void setHead(Node node) {
         head = node;
@@ -468,8 +456,6 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * Wakes up node's successor, if one exists.
      * 唤醒此节点的后继节点
-     *
-     * @param node the node
      */
     private void unparkSuccessor(Node node) {
         /*
@@ -687,12 +673,8 @@ public abstract class AbstractQueuedSynchronizer
      */
 
     /**
-     * Acquires in exclusive uninterruptible mode for thread already in
-     * queue. Used by condition wait methods as well as acquire.
-     *
-     * @param node the node
-     * @param arg  the acquire argument
-     * @return {@code true} if interrupted while waiting
+     * 节点以死循环方式获取同步状态，若获取不到则阻塞节点中的线程，
+     * 被阻塞线程的唤醒主要依赖前驱节点的出队或被阻塞线程中断实现
      */
     final boolean acquireQueued(final Node node, int arg) {
         boolean failed = true;
@@ -733,9 +715,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 可中断地尝试获取同步状态
-     *
-     * @param arg the acquire argument
+     * 尝试获取同步状态(可中断)
      */
     private void doAcquireInterruptibly(int arg)
             throws InterruptedException {
