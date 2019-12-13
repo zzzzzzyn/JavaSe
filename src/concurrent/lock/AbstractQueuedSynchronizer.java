@@ -316,6 +316,8 @@ public abstract class AbstractQueuedSynchronizer
      *      3. 查询同步队列中的等待线程情况
      */
 
+    /*------------------------------独占式操作-----------------------------*/
+
     /**
      * 独占式获取同步状态
      */
@@ -333,6 +335,7 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 独占式获取同步状态(可中断)
+     *
      * @throws InterruptedException 当前线程被中断
      */
     public final void acquireInterruptibly(int arg)
@@ -348,6 +351,7 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 独占式超时获取同步状态
+     *
      * @throws InterruptedException 被中断
      */
     public final boolean tryAcquireNanos(int arg, long nanosTimeout)
@@ -399,23 +403,24 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 以CAS+自旋方式尝试原子插入node直至成功
+     * 独占式释放同步状态，会在释放同步状态后，
+     * 将同步队列中首节点包含的线程唤醒
      */
-    private Node enq(final Node node) {
-        for (; ; ) {
-            Node t = tail;
-            if (t == null) { // Must initialize
-                // 初始化
-                if (compareAndSetHead(new Node()))
-                    tail = head;
-            } else {
-                node.prev = t;
-                if (compareAndSetTail(t, node)) {
-                    t.next = node;
-                    return t;
-                }
-            }
+    public final boolean release(int arg) {
+        // 尝试独占式释放同步状态
+        if (tryRelease(arg)) {
+            Node h = head;
+            /**
+             * 此处的判断:
+             *     1. h可能会为null ---> 添加等待入队操作没有完成，就执行到这里
+             *     2. h==null&&waitStatus==0 ---> 后继线程活动中，没有被阻塞
+             *     3. h!=null&&waitStatus=-1 ---> 后继节点被阻塞，此时需要被唤醒
+             */
+            if (h != null && h.waitStatus != 0)
+                unparkSuccessor(h);
+            return true;
         }
+        return false;
     }
 
     /**
@@ -445,33 +450,80 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 设置头结点
+     * 以CAS+自旋方式尝试原子插入node直至成功
      */
-    private void setHead(Node node) {
-        head = node;
-        node.thread = null;
-        node.prev = null;
+    private Node enq(final Node node) {
+        for (; ; ) {
+            Node t = tail;
+            if (t == null) { // Must initialize
+                // 初始化
+                if (compareAndSetHead(new Node()))
+                    tail = head;
+            } else {
+                node.prev = t;
+                if (compareAndSetTail(t, node)) {
+                    t.next = node;
+                    return t;
+                }
+            }
+        }
     }
 
     /**
-     * Wakes up node's successor, if one exists.
+     * 节点以死循环方式获取同步状态，若获取不到则阻塞节点中的线程，
+     * 被阻塞线程的唤醒主要依赖前驱节点的出队或被阻塞线程中断实现
+     */
+    final boolean acquireQueued(final Node node, int arg) {
+        boolean failed = true;
+        try {
+            boolean interrupted = false;
+            // 循环获取同步状态
+            for (; ; ) {
+                final Node p = node.predecessor();
+                /**
+                 * 前驱节点如果是头结点，表明前驱节点已经获取了同步状态。前驱节点释放同步状态后，
+                 * 在不出异常的情况下， tryAcquire(arg) 应返回 true。此时节点就成功获取了同步状态，
+                 * 并将自己设为头节点，原头节点出队
+                 */
+                if (p == head && tryAcquire(arg)) {
+                    // 将自己设置为头结点
+                    setHead(node);
+                    p.next = null; // help GC
+                    failed = false;
+                    return interrupted;
+                }
+                /**
+                 * 获取同步状态失败，判断是否阻塞自己
+                 * shouldParkAfterFailedAcquire:
+                 * parkAndCheckInterrupt:
+                 */
+                if (shouldParkAfterFailedAcquire(p, node) &&
+                        parkAndCheckInterrupt())
+                    interrupted = true;
+            }
+        } finally {
+            /**
+             * 因为tryAcquire()方法是被覆盖的，所以可能会出现异常，
+             * 此时的failed为true，执行cancelAcquire(node)
+             */
+            if (failed)
+                cancelAcquire(node);
+        }
+    }
+
+    /**
      * 唤醒此节点的后继节点
      */
     private void unparkSuccessor(Node node) {
         /*
-         * If status is negative (i.e., possibly needing signal) try
-         * to clear in anticipation of signalling.  It is OK if this
-         * fails or if status is changed by waiting thread.
+         * 等待状态为负，清除等待状态(就是置 0 )
          */
         int ws = node.waitStatus;
         if (ws < 0)
             compareAndSetWaitStatus(node, ws, 0);
 
         /*
-         * Thread to unpark is held in successor, which is normally
-         * just the next node.  But if cancelled or apparently null,
-         * traverse backwards from tail to find the actual
-         * non-cancelled successor.
+         *
          */
         Node s = node.next;
         if (s == null || s.waitStatus > 0) {
@@ -483,7 +535,8 @@ public abstract class AbstractQueuedSynchronizer
         }
         // 此处判断的原因是s可能在执行到这前中断或从队列中取消了
         if (s != null)
-            LockSupport.unpark(s.thread);   // 唤醒s的线程
+            // 唤醒s的线程(此处是唤醒后继节点方法)
+            LockSupport.unpark(s.thread);
     }
 
     /**
@@ -638,7 +691,7 @@ public abstract class AbstractQueuedSynchronizer
         } else {
             /*
              * 等待状态为 0 或 PROPAGATE，设置前驱节点等待状态为SIGNAL
-             * 并在此尝试获取同步状态
+             * 并再次尝试获取同步状态
              */
             compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
         }
@@ -671,48 +724,6 @@ public abstract class AbstractQueuedSynchronizer
      * cancel if tryAcquire throws exception) and other control, at
      * least not without hurting performance too much.
      */
-
-    /**
-     * 节点以死循环方式获取同步状态，若获取不到则阻塞节点中的线程，
-     * 被阻塞线程的唤醒主要依赖前驱节点的出队或被阻塞线程中断实现
-     */
-    final boolean acquireQueued(final Node node, int arg) {
-        boolean failed = true;
-        try {
-            boolean interrupted = false;
-            // 循环获取同步状态
-            for (; ; ) {
-                final Node p = node.predecessor();
-                /**
-                 * 前驱节点如果是头结点，表明前驱节点已经获取了同步状态。前驱节点释放同步状态后，
-                 * 在不出异常的情况下， tryAcquire(arg) 应返回 true。此时节点就成功获取了同步状态，
-                 * 并将自己设为头节点，原头节点出队
-                 */
-                if (p == head && tryAcquire(arg)) {
-                    // 将自己设置为头结点
-                    setHead(node);
-                    p.next = null; // help GC
-                    failed = false;
-                    return interrupted;
-                }
-                /**
-                 * 获取同步状态失败，判断是否阻塞自己
-                 * shouldParkAfterFailedAcquire:
-                 * parkAndCheckInterrupt:
-                 */
-                if (shouldParkAfterFailedAcquire(p, node) &&
-                        parkAndCheckInterrupt())
-                    interrupted = true;
-            }
-        } finally {
-            /**
-             * 因为tryAcquire()方法是被覆盖的，所以可能会出现异常，
-             * 此时的failed为true，执行cancelAcquire(node)
-             */
-            if (failed)
-                cancelAcquire(node);
-        }
-    }
 
     /**
      * 尝试获取同步状态(可中断)
@@ -804,6 +815,15 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
+     * 设置头结点
+     */
+    private void setHead(Node node) {
+        head = node;
+        node.thread = null;
+        node.prev = null;
+    }
+
+    /**
      * Acquires in shared timed mode.
      *
      * @param arg          the acquire argument
@@ -845,21 +865,6 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     // Main exported methods
-
-
-    /**
-     * 独占式释放同步状态，会在释放同步状态后，
-     * 将同步队列中首节点包含的线程唤醒
-     */
-    public final boolean release(int arg) {
-        if (tryRelease(arg)) {
-            Node h = head;
-            if (h != null && h.waitStatus != 0)
-                unparkSuccessor(h);
-            return true;
-        }
-        return false;
-    }
 
     /**
      * 共享式获取同步状态
