@@ -362,6 +362,16 @@ public abstract class AbstractQueuedSynchronizer
                 doAcquireNanos(arg, nanosTimeout);
     }
 
+    /*------------------------------共享式操作-----------------------------*/
+
+    /**
+     * 共享式获取同步状态
+     */
+    public final void acquireShared(int arg) {
+        if (tryAcquireShared(arg) < 0)
+            doAcquireShared(arg);
+    }
+
     /**
      * 独占式定时获取同步状态
      *
@@ -866,13 +876,7 @@ public abstract class AbstractQueuedSynchronizer
 
     // Main exported methods
 
-    /**
-     * 共享式获取同步状态
-     */
-    public final void acquireShared(int arg) {
-        if (tryAcquireShared(arg) < 0)
-            doAcquireShared(arg);
-    }
+
 
     /**
      * Acquires in shared mode, aborting if interrupted.  Implemented
