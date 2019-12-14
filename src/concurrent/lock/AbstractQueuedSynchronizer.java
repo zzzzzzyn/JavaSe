@@ -123,7 +123,7 @@ public abstract class AbstractQueuedSynchronizer
          */
         static final int CONDITION = -2;
         /**
-         * 等待状态
+         * 等待状态，传播，下一个共享节点会传播
          * waitStatus value to indicate the next acquireShared should
          * unconditionally propagate
          */
@@ -362,6 +362,27 @@ public abstract class AbstractQueuedSynchronizer
                 doAcquireNanos(arg, nanosTimeout);
     }
 
+    /**
+     * 独占式释放同步状态，会在释放同步状态后，
+     * 将同步队列中首节点包含的线程唤醒
+     */
+    public final boolean release(int arg) {
+        // 尝试独占式释放同步状态
+        if (tryRelease(arg)) {
+            Node h = head;
+            /**
+             * 此处的判断:
+             *     1. h可能会为null ---> 添加等待入队操作没有完成，就执行到这里
+             *     2. h==null&&waitStatus==0 ---> 后继线程活动中，没有被阻塞
+             *     3. h!=null&&waitStatus=-1 ---> 后继节点被阻塞，此时需要被唤醒
+             */
+            if (h != null && h.waitStatus != 0)
+                unparkSuccessor(h);
+            return true;
+        }
+        return false;
+    }
+
     /*------------------------------共享式操作-----------------------------*/
 
     /**
@@ -370,6 +391,39 @@ public abstract class AbstractQueuedSynchronizer
     public final void acquireShared(int arg) {
         if (tryAcquireShared(arg) < 0)
             doAcquireShared(arg);
+    }
+
+    /**
+     * 共享式获取同步状态(可中断)
+     */
+    public final void acquireSharedInterruptibly(int arg)
+            throws InterruptedException {
+        if (Thread.interrupted())
+            throw new InterruptedException();
+        if (tryAcquireShared(arg) < 0)
+            doAcquireSharedInterruptibly(arg);
+    }
+
+    /**
+     * 共享式超时获取同步状态
+     */
+    public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout)
+            throws InterruptedException {
+        if (Thread.interrupted())
+            throw new InterruptedException();
+        return tryAcquireShared(arg) >= 0 ||
+                doAcquireSharedNanos(arg, nanosTimeout);
+    }
+
+    /**
+     * 共享式释放同步状态
+     */
+    public final boolean releaseShared(int arg) {
+        if (tryReleaseShared(arg)) {
+            doReleaseShared();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -410,27 +464,6 @@ public abstract class AbstractQueuedSynchronizer
             if (failed)
                 cancelAcquire(node);
         }
-    }
-
-    /**
-     * 独占式释放同步状态，会在释放同步状态后，
-     * 将同步队列中首节点包含的线程唤醒
-     */
-    public final boolean release(int arg) {
-        // 尝试独占式释放同步状态
-        if (tryRelease(arg)) {
-            Node h = head;
-            /**
-             * 此处的判断:
-             *     1. h可能会为null ---> 添加等待入队操作没有完成，就执行到这里
-             *     2. h==null&&waitStatus==0 ---> 后继线程活动中，没有被阻塞
-             *     3. h!=null&&waitStatus=-1 ---> 后继节点被阻塞，此时需要被唤醒
-             */
-            if (h != null && h.waitStatus != 0)
-                unparkSuccessor(h);
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -771,6 +804,11 @@ public abstract class AbstractQueuedSynchronizer
             boolean interrupted = false;
             for (; ; ) {
                 final Node p = node.predecessor();
+                /**
+                 * 前驱节点为头结点，可能是独占节点，也可能是共享节点
+                 *      1. 独占节点: 线程无法取得同步状态
+                 *      2. 共享节点: 线程可以取得同步状态并向后传播，直到后继节点为空或为独占节点
+                 */
                 if (p == head) {
                     // 尝试共享式获取同步状态，若获取成功r >= 0
                     int r = tryAcquireShared(arg);
@@ -874,107 +912,26 @@ public abstract class AbstractQueuedSynchronizer
         }
     }
 
-    // Main exported methods
 
-
-
-    /**
-     * Acquires in shared mode, aborting if interrupted.  Implemented
-     * by first checking interrupt status, then invoking at least once
-     * {@link #tryAcquireShared}, returning on success.  Otherwise the
-     * thread is queued, possibly repeatedly blocking and unblocking,
-     * invoking {@link #tryAcquireShared} until success or the thread
-     * is interrupted.
-     *
-     * @param arg the acquire argument.
-     *            This value is conveyed to {@link #tryAcquireShared} but is
-     *            otherwise uninterpreted and can represent anything
-     *            you like.
-     * @throws InterruptedException if the current thread is interrupted
-     */
-    public final void acquireSharedInterruptibly(int arg)
-            throws InterruptedException {
-        if (Thread.interrupted())
-            throw new InterruptedException();
-        if (tryAcquireShared(arg) < 0)
-            doAcquireSharedInterruptibly(arg);
-    }
-
-    /**
-     * Attempts to acquire in shared mode, aborting if interrupted, and
-     * failing if the given timeout elapses.  Implemented by first
-     * checking interrupt status, then invoking at least once {@link
-     * #tryAcquireShared}, returning on success.  Otherwise, the
-     * thread is queued, possibly repeatedly blocking and unblocking,
-     * invoking {@link #tryAcquireShared} until success or the thread
-     * is interrupted or the timeout elapses.
-     *
-     * @param arg          the acquire argument.  This value is conveyed to
-     *                     {@link #tryAcquireShared} but is otherwise uninterpreted
-     *                     and can represent anything you like.
-     * @param nanosTimeout the maximum number of nanoseconds to wait
-     * @return {@code true} if acquired; {@code false} if timed out
-     * @throws InterruptedException if the current thread is interrupted
-     */
-    public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout)
-            throws InterruptedException {
-        if (Thread.interrupted())
-            throw new InterruptedException();
-        return tryAcquireShared(arg) >= 0 ||
-                doAcquireSharedNanos(arg, nanosTimeout);
-    }
-
-    /**
-     * 共享式释放同步状态
-     */
-    public final boolean releaseShared(int arg) {
-        if (tryReleaseShared(arg)) {
-            doReleaseShared();
-            return true;
-        }
-        return false;
-    }
 
     // Queue inspection methods
 
     /**
-     * Queries whether any threads are waiting to acquire. Note that
-     * because cancellations due to interrupts and timeouts may occur
-     * at any time, a {@code true} return does not guarantee that any
-     * other thread will ever acquire.
-     *
-     * <p>In this implementation, this operation returns in
-     * constant time.
-     *
-     * @return {@code true} if there may be other threads waiting to acquire
+     * 队列中是否存在线程
      */
     public final boolean hasQueuedThreads() {
         return head != tail;
     }
 
     /**
-     * Queries whether any threads have ever contended to acquire this
-     * synchronizer; that is if an acquire method has ever blocked.
-     *
-     * <p>In this implementation, this operation returns in
-     * constant time.
-     *
-     * @return {@code true} if there has ever been contention
+     * 是否存在过竞争
      */
     public final boolean hasContended() {
         return head != null;
     }
 
     /**
-     * Returns the first (longest-waiting) thread in the queue, or
-     * {@code null} if no threads are currently queued.
-     *
-     * <p>In this implementation, this operation normally returns in
-     * constant time, but may iterate upon contention if other threads are
-     * concurrently modifying the queue.
-     *
-     * @return the first (longest-waiting) thread in the queue, or
-     * {@code null} if no threads are currently queued
+     * 返回队列中等待的第一个线程
      */
     public final Thread getFirstQueuedThread() {
         // handle only fast path, else relay
@@ -1021,14 +978,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Returns true if the given thread is currently queued.
-     *
-     * <p>This implementation traverses the queue to determine
-     * presence of the given thread.
-     *
-     * @param thread the thread
-     * @return {@code true} if the given thread is on the queue
-     * @throws NullPointerException if the thread is null
+     * 判断线程是否在队列中
      */
     public final boolean isQueued(Thread thread) {
         if (thread == null)
