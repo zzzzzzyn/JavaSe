@@ -8,6 +8,10 @@ import java.util.concurrent.locks.*;
 
 import sun.misc.Unsafe;
 
+
+/**
+ * 参考：https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html
+ */
 public abstract class AbstractQueuedSynchronizer
         extends AbstractOwnableSynchronizer
         implements java.io.Serializable {
@@ -111,7 +115,7 @@ public abstract class AbstractQueuedSynchronizer
         static final Node EXCLUSIVE = null;
 
         /**
-         * 等待状态，线程取消
+         * 等待状态，线程获取锁的请求取消了
          */
         static final int CANCELLED = 1;
         /**
@@ -123,9 +127,7 @@ public abstract class AbstractQueuedSynchronizer
          */
         static final int CONDITION = -2;
         /**
-         * 等待状态，传播，下一个共享节点会传播
-         * waitStatus value to indicate the next acquireShared should
-         * unconditionally propagate
+         * 等待状态，传播，节点处于共享状态时，才会使用
          */
         static final int PROPAGATE = -3;
 
@@ -248,6 +250,8 @@ public abstract class AbstractQueuedSynchronizer
 
     /*----------------------修改同步状态的方法----------------------*/
 
+    // 都使用final修饰，子类无法进行重写
+
     /**
      * 获取同步状态
      */
@@ -266,7 +270,6 @@ public abstract class AbstractQueuedSynchronizer
      * 原子更新同步状态
      */
     protected final boolean compareAndSetState(int expect, int update) {
-        // See below for intrinsics setup to support this
         return unsafe.compareAndSwapInt(this, stateOffset, expect, update);
     }
 
@@ -319,7 +322,7 @@ public abstract class AbstractQueuedSynchronizer
     /*------------------------------独占式操作-----------------------------*/
 
     /**
-     * 独占式获取同步状态
+     * 独占式获取同步状态(忽略中断)
      */
     public final void acquire(int arg) {
         /**
@@ -334,7 +337,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 独占式获取同步状态(可中断)
+     * 独占式获取同步状态(响应中断)
      *
      * @throws InterruptedException 当前线程被中断
      */
@@ -350,7 +353,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 独占式超时获取同步状态
+     * 独占式超时获取同步状态(忽略中断)
      *
      * @throws InterruptedException 被中断
      */
@@ -394,7 +397,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 共享式获取同步状态(可中断)
+     * 共享式获取同步状态(响应中断)
      */
     public final void acquireSharedInterruptibly(int arg)
             throws InterruptedException {
@@ -405,7 +408,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 共享式超时获取同步状态
+     * 共享式超时获取同步状态(忽略中断)
      */
     public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout)
             throws InterruptedException {
@@ -426,8 +429,10 @@ public abstract class AbstractQueuedSynchronizer
         return false;
     }
 
+    /*------------------------------获取同步状态操作-----------------------------*/
+
     /**
-     * 独占式定时获取同步状态
+     * 独占式时间获取同步状态
      *
      * @param nanosTimeout 超时的纳秒
      */
@@ -1007,53 +1012,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Queries whether any threads have been waiting to acquire longer
-     * than the current thread.
-     *
-     * <p>An invocation of this method is equivalent to (but may be
-     * more efficient than):
-     * <pre> {@code
-     * getFirstQueuedThread() != Thread.currentThread() &&
-     * hasQueuedThreads()}</pre>
-     *
-     * <p>Note that because cancellations due to interrupts and
-     * timeouts may occur at any time, a {@code true} return does not
-     * guarantee that some other thread will acquire before the current
-     * thread.  Likewise, it is possible for another thread to win a
-     * race to enqueue after this method has returned {@code false},
-     * due to the queue being empty.
-     *
-     * <p>This method is designed to be used by a fair synchronizer to
-     * avoid <a href="AbstractQueuedSynchronizer#barging">barging</a>.
-     * Such a synchronizer's {@link #tryAcquire} method should return
-     * {@code false}, and its {@link #tryAcquireShared} method should
-     * return a negative value, if this method returns {@code true}
-     * (unless this is a reentrant acquire).  For example, the {@code
-     * tryAcquire} method for a fair, reentrant, exclusive mode
-     * synchronizer might look like this:
-     *
-     * <pre> {@code
-     * protected boolean tryAcquire(int arg) {
-     *   if (isHeldExclusively()) {
-     *     // A reentrant acquire; increment hold count
-     *     return true;
-     *   } else if (hasQueuedPredecessors()) {
-     *     return false;
-     *   } else {
-     *     // try to acquire normally
-     *   }
-     * }}</pre>
-     *
-     * @return {@code true} if there is a queued thread preceding the
-     * current thread, and {@code false} if the current thread
-     * is at the head of the queue or the queue is empty
-     * @since 1.7
+     * 公平加锁时判断等待队列是否存在有效节点
      */
     public final boolean hasQueuedPredecessors() {
-        // The correctness of this depends on head being initialized
-        // before tail and on head.next being accurate if the current
-        // thread is first in queue.
-        Node t = tail; // Read fields in reverse initialization order
+        Node t = tail;
         Node h = head;
         Node s;
         return h != t &&
