@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 这个是并发编程艺术里的demo
  * 和join的用法类似，不过这个功能更多一些
+ * 使用时可以把CountDownLatch的引用传入线程或同步资源中
  */
 public class CountDownLatchTest {
 
