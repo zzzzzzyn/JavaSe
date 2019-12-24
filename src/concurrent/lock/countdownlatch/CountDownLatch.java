@@ -8,8 +8,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  */
 public class CountDownLatch {
     /**
-     * Synchronization control For CountDownLatch.
-     * Uses AQS state to represent count.
+     * CountDownLatch的同步控件，继承的aqs用state进行计数
      */
     private static final class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = 4982264981922014374L;
@@ -65,27 +64,7 @@ public class CountDownLatch {
     /**
      * 使当前线程等待，直至计数器为0为止，除非当前线程中断
      * 当前计数器为0时立即返回
-     *
-     * <p>If the current count is greater than zero then the current
-     * thread becomes disabled for thread scheduling purposes and lies
-     * dormant until one of two things happen:
-     * <ul>
-     * <li>The count reaches zero due to invocations of the
-     * {@link #countDown} method; or
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts}
-     * the current thread.
-     * </ul>
-     *
-     * <p>If the current thread:
-     * <ul>
-     * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
-     * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's
-     * interrupted status is cleared.
-     *
-     * @throws InterruptedException if the current thread is interrupted
-     *                              while waiting
+     * @throws InterruptedException 当前线程等待时被中断
      */
     public void await() throws InterruptedException {
         sync.acquireSharedInterruptibly(1);
