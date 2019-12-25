@@ -51,7 +51,7 @@ public class CountDownLatch {
     private final Sync sync;
 
     /**
-     * 构造给定count的CountDownLatch
+     * 构造给定count的锁存器
      *
      * @param count 线程通过前CountDown必须被调用的次数
      * @throws IllegalArgumentException count<0
@@ -117,7 +117,7 @@ public class CountDownLatch {
     }
 
     /**
-     * 减少锁的计数，如果计数达到零，则释放所有等待线程。
+     * 减少锁存器的计数，如果计数达到零，则释放所有等待线程。
      *
      * 这主要的思想就是给定了state值，调用一次就去减少一次，直到state为0
      * 而await则是获取同步状态，都在tryAcquireShared方法处做了限制
