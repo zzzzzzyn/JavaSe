@@ -16,7 +16,7 @@ xyn1
 zyn2
 )
 # 数组赋值
-array_name[3]=xyn2
+array_name[3]=xyn2          # 数组赋值
 array_name[4]=zyn2
 # 输出数组某个元素
 echo ${array_name[0]}		# 获取下标0的数组
