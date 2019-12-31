@@ -24,7 +24,7 @@ public void service() throws RuntimeException{
         throw new Exception("异常");
     } catch (Exception e) {
         // slf4j可以把放入的Exception堆栈信息打印出来，不用我们去手动调用堆栈
-        logger.error("错误信息{}",e);
+        logger.error("这里是错误信息!",e);
         // 此处包装成RuntimeException或继承RuntimeException的自定义异常继续抛出
         throw new RuntimeException(e);
     }
