@@ -8,7 +8,12 @@ HashMap的常见问题:
 - 负载因子的作用
 - hashmap和hashtable的区别
 - 为什么1.7的实现在多线程情况下会形成链表环而1.8却不会，1.8就是安全的了吗
-- 并发情况下hashmap的安全问题及解决方案(带出concurrenthash又能扯一波^_^)
+    - 1.7扩容使用头插入的方式
+    - 1.8扩容使用尾插入的方式
+- 并发情况下hashmap的安全问题及解决方案(带出ConcurrentHashmap又能扯一波^_^)
+    - 使用HashTable
+    - 使用Collections.synchronizedMap()方法包装map
+    - 使用ConcurrentHashmap(推荐)
 
 > 参考网站: https://juejin.im/post/59e86f9351882521ad0f4147 
 
