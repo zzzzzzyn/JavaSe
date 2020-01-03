@@ -1,12 +1,12 @@
-package map;
-
-import java.io.Serializable;
-import java.util.*;
-
-/**
- * 因为TreeNode移植不过来,所以注掉了报错代码
- * 可对比源码包查看
- */
+//package map;
+//
+//import java.io.Serializable;
+//import java.util.*;
+//
+///**
+// * 因为TreeNode移植不过来,所以注掉了报错代码
+// * 可对比源码包查看
+// */
 //public class HashMap<K, V> extends AbstractMap<K, V>
 //        implements Map<K, V>, Cloneable, Serializable {
 //
@@ -648,5 +648,3 @@ import java.util.*;
 //
 //    // 红黑树部分代码讲解的博客:https://www.cnblogs.com/finite/p/8251587.html
 //}
-//
-//

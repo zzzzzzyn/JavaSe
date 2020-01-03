@@ -1,12 +1,12 @@
-package map;
-
-import java.io.IOException;
-import java.util.Map;
-
-/**
- * 在HashMap的基础上维护了一个双向链表
- * 此处只有LinkedHashMap的少量方法
- */
+//package map;
+//
+//import java.io.IOException;
+//import java.util.Map;
+//
+///**
+// * 在HashMap的基础上维护了一个双向链表
+// * 此处只有LinkedHashMap的少量方法
+// */
 //public class LinkedHashMap<K,V>
 //        extends HashMap<K,V>
 //        implements Map<K,V>
@@ -220,4 +220,3 @@ import java.util.Map;
 //        return false;
 //    }
 //}
-//
