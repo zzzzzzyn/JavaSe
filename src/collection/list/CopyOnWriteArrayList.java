@@ -1,7 +1,5 @@
 package collection.list;
 
-import sun.misc.SharedSecrets;
-
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -716,7 +714,7 @@ public class CopyOnWriteArrayList<E>
 
         // Read in array length and allocate array
         int len = s.readInt();
-        SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, len);
+        // SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, len);
         Object[] elements = new Object[len];
 
         // Read in all elements in the proper order.
