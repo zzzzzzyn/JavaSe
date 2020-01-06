@@ -16,7 +16,7 @@ docker run 镜像id		          	    // 通过镜像构建容器
     									docker run -d -p 8080:8081 
                                         -v /usr/local/tomcat/:/usr/local/tomcat/conf/
                                         -v /usr/locat/tomcat/logs:/usr/local/tomcat/logs
-                                        --name=tomcat8080 tocat
+                                        --name tomcat8080 tocat
                                      	-d:守护线程，-p:端口映射，-v:挂载(本地路径:容器路径)
                                         上面解释:守护线程，端口映射，挂载conf，挂载logs
 docker start 容器id					// 启动停止的容器

@@ -30,8 +30,8 @@ public class CountDownLatch {
 
         /**
          * 返回值:
-         *     true: nextc==0 时
-         *     false: c==0 --> 初始化时c为0
+         * true: nextc==0 时
+         * false: c==0 --> 初始化时c为0
          */
         protected boolean tryReleaseShared(int releases) {
             // 递减计数，到0发出信息
@@ -64,6 +64,7 @@ public class CountDownLatch {
     /**
      * 使当前线程等待，直至计数器为0为止，除非当前线程中断
      * 当前计数器为0时立即返回
+     *
      * @throws InterruptedException 当前线程等待时被中断
      */
     public void await() throws InterruptedException {
@@ -71,43 +72,6 @@ public class CountDownLatch {
     }
 
     /**
-     * Causes the current thread to wait until the latch has counted down to
-     * zero, unless the thread is {@linkplain Thread#interrupt interrupted},
-     * or the specified waiting time elapses.
-     *
-     * <p>If the current count is zero then this method returns immediately
-     * with the value {@code true}.
-     *
-     * <p>If the current count is greater than zero then the current
-     * thread becomes disabled for thread scheduling purposes and lies
-     * dormant until one of three things happen:
-     * <ul>
-     * <li>The count reaches zero due to invocations of the
-     * {@link #countDown} method; or
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts}
-     * the current thread; or
-     * <li>The specified waiting time elapses.
-     * </ul>
-     *
-     * <p>If the count reaches zero then the method returns with the
-     * value {@code true}.
-     *
-     * <p>If the current thread:
-     * <ul>
-     * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
-     * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's
-     * interrupted status is cleared.
-     *
-     * <p>If the specified waiting time elapses then the value {@code false}
-     * is returned.  If the time is less than or equal to zero, the method
-     * will not wait at all.
-     *
-     * @param timeout the maximum time to wait
-     * @param unit    the time unit of the {@code timeout} argument
-     * @return {@code true} if the count reached zero and {@code false}
-     * if the waiting time elapsed before the count reached zero
      * @throws InterruptedException if the current thread is interrupted
      *                              while waiting
      */
@@ -118,7 +82,6 @@ public class CountDownLatch {
 
     /**
      * 减少锁存器的计数，如果计数达到零，则释放所有等待线程。
-     *
      * 这主要的思想就是给定了state值，调用一次就去减少一次，直到state为0
      * 而await则是获取同步状态，都在tryAcquireShared方法处做了限制
      */
