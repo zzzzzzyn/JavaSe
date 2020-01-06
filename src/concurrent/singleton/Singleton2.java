@@ -1,4 +1,4 @@
-package concurrent.Singleton;
+package concurrent.singleton;
 
 /**
  * 单例

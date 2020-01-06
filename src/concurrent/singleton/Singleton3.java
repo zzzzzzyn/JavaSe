@@ -1,7 +1,7 @@
-package concurrent.Singleton;
+package concurrent.singleton;
 
 /**
- * 单例
+ * 枚举类天然单例
  * Created by xyn on 2020/1/6
  */
 public enum Singleton3 {
