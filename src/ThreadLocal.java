@@ -73,9 +73,12 @@ public class ThreadLocal<T> {
      * 获取ThreadLocalMap中的值，如果没有初始化，则返回setInitialValue的值
      */
     public T get() {
+        // 获取当前线程
         Thread t = Thread.currentThread();
+        // 获取当前线程属性ThreadLocalMap
         ThreadLocalMap map = getMap(t);
         if (map != null) {
+            // 获取entry
             ThreadLocalMap.Entry e = map.getEntry(this);
             if (e != null) {
                 @SuppressWarnings("unchecked")
@@ -183,23 +186,6 @@ public class ThreadLocal<T> {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * An extension of ThreadLocal that obtains its initial value from
-     * the specified {@code Supplier}.
-     */
-    static final class SuppliedThreadLocal<T> extends ThreadLocal<T> {
-
-        private final Supplier<? extends T> supplier;
-
-        SuppliedThreadLocal(Supplier<? extends T> supplier) {
-            this.supplier = Objects.requireNonNull(supplier);
-        }
-
-        @Override
-        protected T initialValue() {
-            return supplier.get();
-        }
-    }
 
     /**
      * ThreadLocalMap is a customized hash map suitable only for
@@ -222,9 +208,7 @@ public class ThreadLocal<T> {
          * as "stale entries" in the code that follows.
          */
         static class Entry extends WeakReference<ThreadLocal<?>> {
-            /**
-             * The value associated with this ThreadLocal.
-             */
+
             Object value;
 
             Entry(ThreadLocal<?> k, Object v) {
@@ -234,28 +218,28 @@ public class ThreadLocal<T> {
         }
 
         /**
-         * The initial capacity -- MUST be a power of two.
+         * 初始容量
          */
         private static final int INITIAL_CAPACITY = 16;
 
         /**
-         * The table, resized as necessary.
-         * table.length MUST always be a power of two.
+         * entry表的引用
          */
         private Entry[] table;
 
         /**
-         * The number of entries in the table.
+         * 表的长度
          */
         private int size = 0;
 
         /**
-         * The next size value at which to resize.
+         * 扩容阈值
          */
         private int threshold; // Default to 0
 
         /**
-         * Set the resize threshold to maintain at worst a 2/3 load factor.
+         * 调整扩容阈值为table长度的2/3，可以和hashmap类比一下，hashmap的为3/4
+         * 至于为什么会取长度为2/3，可以想一想
          */
         private void setThreshold(int len) {
             threshold = len * 2 / 3;
@@ -276,12 +260,11 @@ public class ThreadLocal<T> {
         }
 
         /**
-         * Construct a new map initially containing (firstKey, firstValue).
-         * ThreadLocalMaps are constructed lazily, so we only create
-         * one when we have at least one entry to put in it.
+         * 构造ThreadLocalMap
          */
         ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
             table = new Entry[INITIAL_CAPACITY];
+            // 此处INITIAL_CAPACITY为2的n次幂，所以可以用位运算与操作
             int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
             table[i] = new Entry(firstKey, firstValue);
             size = 1;
@@ -311,6 +294,7 @@ public class ThreadLocal<T> {
                         int h = key.threadLocalHashCode & (len - 1);
                         while (table[h] != null)
                             h = nextIndex(h, len);
+
                         table[h] = c;
                         size++;
                     }
@@ -329,7 +313,9 @@ public class ThreadLocal<T> {
          * @return the entry associated with key, or null if no such
          */
         private Entry getEntry(ThreadLocal<?> key) {
+            // 确定位置
             int i = key.threadLocalHashCode & (table.length - 1);
+            // 获取entry
             Entry e = table[i];
             if (e != null && e.get() == key)
                 return e;
@@ -633,6 +619,24 @@ public class ThreadLocal<T> {
                 if (e != null && e.get() == null)
                     expungeStaleEntry(j);
             }
+        }
+    }
+
+    /**
+     * An extension of ThreadLocal that obtains its initial value from
+     * the specified {@code Supplier}.
+     */
+    static final class SuppliedThreadLocal<T> extends ThreadLocal<T> {
+
+        private final Supplier<? extends T> supplier;
+
+        SuppliedThreadLocal(Supplier<? extends T> supplier) {
+            this.supplier = Objects.requireNonNull(supplier);
+        }
+
+        @Override
+        protected T initialValue() {
+            return supplier.get();
         }
     }
 }
