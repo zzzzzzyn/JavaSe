@@ -60,7 +60,7 @@ public class ThreadLocal<T> {
     }
 
     /**
-     * Creates a thread local variable.
+     * 构造，创建线程本地变量
      *
      * @see #withInitial(java.util.function.Supplier)
      */
@@ -88,10 +88,9 @@ public class ThreadLocal<T> {
     }
 
     /**
-     * Variant of set() to establish initialValue. Used instead
-     * of set() in case user has overridden the set() method.
-     *
-     * @return the initial value
+     * 设置初始值
+     * 若线程局部变量threadlocals为null，创建并赋初值
+     * 不为null，调用ThreadLocalMap的set()方法赋值
      */
     private T setInitialValue() {
         T value = initialValue();
@@ -105,20 +104,17 @@ public class ThreadLocal<T> {
     }
 
     /**
-     * Sets the current thread's copy of this thread-local variable
-     * to the specified value.  Most subclasses will have no need to
-     * override this method, relying solely on the {@link #initialValue}
-     * method to set the values of thread-locals.
-     *
-     * @param value the value to be stored in the current thread's copy of
-     *              this thread-local.
+     * 赋值
      */
     public void set(T value) {
         Thread t = Thread.currentThread();
+        // 获取当前线程的局部变量ThreadLocalMap
         ThreadLocalMap map = getMap(t);
         if (map != null)
+            // 赋值，key为ThreadLocal对象
             map.set(this, value);
         else
+            // 创建并赋值
             createMap(t, value);
     }
 
@@ -140,22 +136,14 @@ public class ThreadLocal<T> {
     }
 
     /**
-     * Get the map associated with a ThreadLocal. Overridden in
-     * InheritableThreadLocal.
-     *
-     * @param t the current thread
-     * @return the map
+     * 获取线程的局部变量threadLocals
      */
     ThreadLocalMap getMap(Thread t) {
         return t.threadLocals;
     }
 
     /**
-     * Create the map associated with a ThreadLocal. Overridden in
-     * InheritableThreadLocal.
-     *
-     * @param t          the current thread
-     * @param firstValue value for the initial entry of the map
+     * 创建ThreadLocalMap并赋值
      */
     void createMap(Thread t, T firstValue) {
         t.threadLocals = new ThreadLocalMap(this, firstValue);
@@ -348,10 +336,7 @@ public class ThreadLocal<T> {
         }
 
         /**
-         * Set the value associated with key.
-         *
-         * @param key   the thread local object
-         * @param value the value to be set
+         * 设置key，value
          */
         private void set(ThreadLocal<?> key, Object value) {
 
@@ -362,6 +347,7 @@ public class ThreadLocal<T> {
 
             Entry[] tab = table;
             int len = tab.length;
+            // 位运算确定下标
             int i = key.threadLocalHashCode & (len - 1);
 
             for (Entry e = tab[i];
@@ -375,6 +361,7 @@ public class ThreadLocal<T> {
                 }
 
                 if (k == null) {
+                    // 替换
                     replaceStaleEntry(key, value, i);
                     return;
                 }
@@ -387,11 +374,12 @@ public class ThreadLocal<T> {
         }
 
         /**
-         * Remove the entry for key.
+         * 移除key，value
          */
         private void remove(ThreadLocal<?> key) {
             Entry[] tab = table;
             int len = tab.length;
+            // 位运算获取数组下标
             int i = key.threadLocalHashCode & (len - 1);
             for (Entry e = tab[i];
                  e != null;
@@ -478,11 +466,6 @@ public class ThreadLocal<T> {
         }
 
         /**
-         * Expunge a stale entry by rehashing any possibly colliding entries
-         * lying between staleSlot and the next null slot.  This also expunges
-         * any other stale entries encountered before the trailing null.  See
-         * Knuth, Section 6.4
-         *
          * @param staleSlot index of slot known to have null key
          * @return the index of the next null slot after staleSlot
          * (all between staleSlot and this slot will have been checked

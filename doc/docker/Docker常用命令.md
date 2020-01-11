@@ -35,3 +35,5 @@ docker logs -f 容器id					// 输出容器内部的标准输出，类似tail -f
 > [菜鸟教程](https://www.runoob.com/docker/docker-dockerfile.html)
 
 > [周立docker](http://www.itmuch.com/docker/00-docker-lession-index/)
+
+> [docker中文文档](http://www.dockerinfo.net/document)
