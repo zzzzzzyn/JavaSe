@@ -12,6 +12,7 @@ JavaSe
     ├── blockingqueue -- 阻塞队列
     ├── lock -- 锁
     ├── singleton -- 几种单例实现方式
+    ├── threadlocal -- threadlocal简单介绍
 ├── io -- io
 ├── java8 -- java8的一些新特性
 ├── map -- map的介绍
