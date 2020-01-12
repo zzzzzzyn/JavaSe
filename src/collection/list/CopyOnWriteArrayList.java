@@ -12,6 +12,7 @@ import java.util.function.UnaryOperator;
  * 修改操作加锁，复制原数组并修改放回
  * 所以修改操作不会影响读取操作，但读取到的数据可能是脏数据
  * 适合读多写少场景
+ *
  * @author xyn
  */
 public class CopyOnWriteArrayList<E>

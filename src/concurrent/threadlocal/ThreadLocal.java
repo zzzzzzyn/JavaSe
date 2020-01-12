@@ -105,13 +105,7 @@
 //    }
 //
 //    /**
-//     * Removes the current thread's value for this thread-local
-//     * variable.  If this thread-local variable is subsequently
-//     * {@linkplain #get read} by the current thread, its value will be
-//     * reinitialized by invoking its {@link #initialValue} method,
-//     * unless its value is {@linkplain #set set} by the current thread
-//     * in the interim.  This may result in multiple invocations of the
-//     * {@code initialValue} method in the current thread.
+//     * 移除当前线程的局部变量
 //     *
 //     * @since 1.5
 //     */
