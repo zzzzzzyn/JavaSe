@@ -17,7 +17,7 @@ Spring对事务异常的处理
 ```java
 // 业务代码
 @Transactional
-public void service() throws RuntimeException{
+public void service() {
     try {
         userMapper.updateA(1, "1111");
         userMapper.updateB(5, "5555");
