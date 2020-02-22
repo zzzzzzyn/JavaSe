@@ -64,6 +64,6 @@ USER $user
 docker build --build-arg user=aaa Dockerfile .
 ```
 
-![](C:\Users\Administrator\Desktop\JavaSe\doc\docker\img\dockerfile.png)
+![](.\img\dockerfile.png)
 
 > [Edison zhou](https://www.cnblogs.com/edisonchou/p/dockerfile_inside_introduction.html)
