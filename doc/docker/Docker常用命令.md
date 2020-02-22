@@ -30,6 +30,7 @@ docker rm 容器id						// 删除容器
 docker export 容器id       			// 导出容器：docker export nginx8080 > nginx.tar
 docker import 容器id					// 导入容器为镜像：docker import ngxin.tar nginx8080
 docker logs -f 容器id					// 输出容器内部的标准输出，类似tail -f，一般用于查看tomcat
+docker inspect 容器id					// 查看容器的各项配置
 ```
 
 > [菜鸟教程](https://www.runoob.com/docker/docker-dockerfile.html)
