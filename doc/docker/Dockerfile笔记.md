@@ -64,6 +64,6 @@ USER $user
 docker build --build-arg user=aaa Dockerfile .
 ```
 
-![](.\img\dockerfile.png)
+![逗比的理解图](.\img\dockerfile.png)
 
 > [Edison zhou](https://www.cnblogs.com/edisonchou/p/dockerfile_inside_introduction.html)
