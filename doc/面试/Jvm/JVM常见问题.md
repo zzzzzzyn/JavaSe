@@ -48,13 +48,13 @@
 
   - 好处：reference指向稳定的句柄，当堆空间进行gc时，对象的移动只会改变句柄中的对象实例指针，对reference没有影响
 
-    <img src="img/句柄池.png" style="zoom:67%;" >
+    <img src="https://img-blog.csdnimg.cn/20200422222425338.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3h4eHh4eHh4eHh4eW4=,size_16,color_FFFFFF,t_70" style="zoom:67%;" >
 
 - 直接指针：堆中实例对象存放实例类型，reference指针直接指向实例对象
 
   - 好处：速度更快，节省一次指针定位的开销
 
-    <img src="img/直接指针.png" style="zoom:67%;" >
+    <img src="https://img-blog.csdnimg.cn/2020042222245792.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3h4eHh4eHh4eHh4eW4=,size_16,color_FFFFFF,t_70" style="zoom:67%;" >
 
 ##### 7. 对象创建过程？
 
@@ -103,7 +103,7 @@
           - **无法处理浮动垃圾**，浮动垃圾过多时会启用Serial Old收集器
           - **大量内存碎片**，再次分配大对象分配不下时，会引发一次FullGC，通过-XX：+UseCMSCompactAtFullCollection，在要进行FullGC时，进行内存整理（无法并发，慢）
 - **G1收集器：**
-- <img src="img/垃圾收集器.png" style="zoom:67%;" >
+  <img src="https://img-blog.csdnimg.cn/20200422222524587.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3h4eHh4eHh4eHh4eW4=,size_16,color_FFFFFF,t_70" style="zoom:67%;" >
 
 ##### 12. 理解GC日志？
 
