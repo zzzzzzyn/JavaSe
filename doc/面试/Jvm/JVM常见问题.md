@@ -111,6 +111,8 @@
 
 [Oracle的官方文档](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html#BGBCIEFC)
 
+[JVM常用参数指南](https://snailclimb.gitee.io/javaguide/#/docs/java/jvm/最重要的JVM参数指南)
+
 ##### 14. 分配担保机制？
 
 在发生Minor GC前，JVM检查新生代总大小是否可被老年代最大连续空间容纳，可容纳时进行Minor GC，否则检查是否允许分配担保失败，如果允许，判断老年代最大连续空间是否大于以往晋升对象的平均大小，若大于，进行Minor GC（有风险，可能这次超出平均大小，老年代接不住）。若小于或不允许分配担保失败，则转为执行Full GC
