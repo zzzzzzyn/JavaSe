@@ -37,7 +37,7 @@
 -Xloggc:D:/gc.log           # 日志文件的输出路径
 # 堆快照
 -XX:+HeapDumpOnOutOfMemoryError # 出现内存溢出时存储堆信息，配合 -XX:HeapDumpPath 使用
--XX:HeapDumpPath=D:/oom.log     # 堆快照存储位置
+-XX:HeapDumpPath=D:/oom.hprof     # 堆快照存储位置
 -XX:+UseLargePages              # 使用大页  
 -XX:LargePageSizeInBytes=4m     # 指定大页的大小（必须为2的幂）
 # 滚动日志记录
