@@ -8,8 +8,8 @@ public enum Singleton3 {
 
     INSTANCE;
 
-    public void singletonOperation() {
-        // TODO
+    public Singleton3 singletonOperation() {
+        return Singleton3.INSTANCE;
     }
 
 }
